@@ -1,7 +1,17 @@
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
 import { withPayload } from '@payloadcms/next/withPayload'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Pin Turbopack to this project — without this, Next walks up the tree,
+  // sees .git in the parent folder and tries to resolve modules from there.
+  turbopack: {
+    root: __dirname,
+  },
+  outputFileTracingRoot: __dirname,
   serverExternalPackages: ['drizzle-kit', '@libsql/client', '@payloadcms/db-sqlite'],
   images: {
     remotePatterns: [
