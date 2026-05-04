@@ -1,26 +1,116 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Цвета */
+  --color-charcoal: #121212;
+  --color-charcoal-deep: #0a0a0a;
+  --color-surface: #1a1a1f;
+  --color-deep-purple: #2d1b33;
+  --color-gold: #d4af37;
+  --color-gold-muted: #8a7b45;
+
+  /* Семантические алиасы */
+  --background: var(--color-charcoal);
+  --foreground: var(--color-gold);
+  --foreground-muted: var(--color-gold-muted);
+  --border-subtle: rgba(212, 175, 55, 0.15);
+  --border-strong: rgba(212, 175, 55, 0.4);
+
+  /* Layout */
+  --navbar-height: 72px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-charcoal: #121212;
+  --color-charcoal-deep: #0a0a0a;
+  --color-surface: #1a1a1f;
+  --color-deep-purple: #2d1b33;
+  --color-gold: #d4af37;
+  --color-gold-muted: #8a7b45;
+  --font-serif: var(--font-playfair), "Playfair Display", Georgia, serif;
+  --font-sans: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--navbar-height);
 }
 
+html,
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Хелперы типографических ролей. Применяются как className="eyebrow" и т.п. */
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.label-line {
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.lead {
+  font-size: 19px;
+  line-height: 1.55;
+}
+
+/* Focus-visible: единый золотой outline */
+*:focus {
+  outline: none;
+}
+*:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+button:focus-visible,
+a:focus-visible {
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.35);
+}
+
+/* Skip-to-content link */
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 100;
+  background: var(--color-charcoal);
+  color: var(--color-gold);
+  padding: 0.75rem 1.25rem;
+  border: 1px solid var(--color-gold);
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transform: translateY(-150%);
+  transition: transform 0.2s ease;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

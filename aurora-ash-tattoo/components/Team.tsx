@@ -1,43 +1,72 @@
-"use client";
+import { getPayload, DEFAULT_LOCALE, type Locale } from '../lib/payload'
 
-import { motion } from 'framer-motion';
+import TeamGrid, { type TeamMember } from './TeamGrid'
 
-const team = [
-  { id: 1, name: 'Alex White North', role: 'Lead Artist / Blackwork', img: '/portfolio/alex.png' },
-  { id: 2, name: 'Aurora', role: 'Fine Line / Ornamental', img: '/portfolio/aurora.png' },
-  { id: 3, name: 'Julian', role: 'Minimalism / Dark Art', img: '/portfolio/julian.png' }
-];
+interface TeamProps {
+  locale?: Locale
+}
 
-export default function Team() {
+const FALLBACK: TeamMember[] = [
+  { id: 1, name: 'Alex White North', slug: 'alex', role: 'Lead Artist / Blackwork', portrait: { url: '/portfolio/alex.png', alt: 'Alex' } },
+  { id: 2, name: 'Aurora', slug: 'aurora', role: 'Fine Line / Ornamental', portrait: { url: '/portfolio/aurora.png', alt: 'Aurora' } },
+  { id: 3, name: 'Julian', slug: 'julian', role: 'Minimalism / Dark Art', portrait: { url: '/portfolio/julian.png', alt: 'Julian' } },
+]
+
+const COPY = {
+  en: {
+    eyebrow: 'The collective',
+    heading: 'Artists',
+  },
+  ru: {
+    eyebrow: 'Коллектив',
+    heading: 'Артисты',
+  },
+}
+
+export default async function Team({ locale = DEFAULT_LOCALE }: TeamProps = {}) {
+  const safeLocale: 'en' | 'ru' = locale === 'ru' ? 'ru' : 'en'
+  const t = COPY[safeLocale]
+
+  let members: TeamMember[] = FALLBACK
+
+  try {
+    const payload = await getPayload()
+    const res = await payload.find({
+      collection: 'artists',
+      where: { featured: { equals: true } },
+      sort: 'order',
+      locale: safeLocale,
+      depth: 1,
+      limit: 12,
+    })
+
+    if (res.docs.length > 0) {
+      members = res.docs.map((doc: any) => ({
+        id: doc.id,
+        name: doc.name,
+        slug: doc.slug,
+        role: doc.role,
+        portrait: typeof doc.portrait === 'object' ? doc.portrait : null,
+      }))
+    }
+  } catch (err) {
+    console.error('[Team] failed to load artists from Payload, using fallback', err)
+  }
+
   return (
-    <section id="team" className="py-24 bg-[#121212] text-[#D4AF37]">
-      <div className="max-w-7xl mx-auto px-6">
-        <h2 className="text-5xl font-serif text-center mb-20 tracking-[0.2em] uppercase italic">The Artists</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {team.map((member) => (
-            <motion.div 
-              key={member.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="group relative"
-            >
-              <div className="relative h-[500px] overflow-hidden border border-[#D4AF37]/20 transition-all duration-500 group-hover:border-[#D4AF37] rounded-sm">
-                <img 
-                  src={member.img} 
-                  alt={member.name} 
-                  className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent opacity-80" />
-              </div>
-              <div className="mt-8 text-center">
-                <h3 className="text-2xl font-serif tracking-widest uppercase mb-2">{member.name}</h3>
-                <p className="text-sm uppercase tracking-[0.3em] text-[#D4AF37]/60 italic">{member.role}</p>
-              </div>
-            </motion.div>
-          ))}
+    <section
+      id="team"
+      className="py-24 md:py-32 bg-[#121212] text-[#D4AF37] border-t border-[#D4AF37]/10"
+    >
+      <div className="max-w-7xl mx-auto px-6 md:px-8">
+        <div className="text-center mb-16 md:mb-20">
+          <p className="label-line text-[#D4AF37]/55 mb-4">{t.eyebrow}</p>
+          <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl tracking-tight">
+            {t.heading}
+          </h2>
         </div>
+        <TeamGrid members={members} locale={safeLocale} />
       </div>
     </section>
-  );
+  )
 }
