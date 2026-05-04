@@ -1,0 +1,23 @@
+﻿# Secrets
+Passwords.txt
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Build & deps
+**/node_modules/
+**/.next/
+**/dist/
+
+# Local databases
+**/payload.db
+**/payload.db-journal
+**/*.sqlite
+**/*.sqlite-journal
+
+# IDE / OS
+.continue/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
