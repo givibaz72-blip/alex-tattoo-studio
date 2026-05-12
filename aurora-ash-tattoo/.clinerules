@@ -1,0 +1,267 @@
+# ── Aurora & Ash Tattoo · Project Constitution ─────────────────────────────
+#
+# This file is the single source of truth for every AI agent working on this
+# codebase.  Violating a rule marked MANDATORY will block a PR from being
+# merged.  Rules marked STANDARD represent the team's collective taste and
+# should only be broken with an explicit, commented reason.
+
+# ── 1. PROJECT IDENTITY ────────────────────────────────────────────────────
+
+name:              Aurora & Ash Tattoo
+type:              Luxury tattoo-studio website
+repo-root:         aurora-ash-tattoo/
+slug:              aurora-ash
+
+# ── 2. TECH STACK (locked versions) ────────────────────────────────────────
+
+runtime:           Node.js ≥ 20
+package-manager:   npm
+framework:         Next.js 16.2.4  (App Router)
+cms:               Payload CMS 3.84.1
+database:          SQLite  (libsql via @libsql/client)
+language:          TypeScript 5.x  — strict: true  MANDATORY
+styles:            Tailwind CSS 4.2.4  +  PostCSS 8  +  Autoprefixer 10
+animation:         Framer Motion 12.38.0
+lint:              ESLint 9  (eslint-config-next 16.2.4)
+images:            Sharp 0.34.5  (server-side optimisation)
+fonts:             Playfair Display  (headings)  +  Inter  (body)
+
+# ── 3. SECURITY ────────────────────────────────────────────────────────────
+
+3.1  SECRETS  MANDATORY
+     • Never hard-code secrets.  All secrets live in .env.local (git-ignored).
+     • Required env vars:
+         PAYLOAD_SECRET          — ≥ 32-char random string; used for JWT signing
+         DATABASE_URI            — SQLite connection string (default: file:./payload.db)
+         NEXT_PUBLIC_SITE_URL    — public-facing URL (default: http://localhost:3000)
+     • .env.local MUST be listed in .gitignore.  Confirm before every commit.
+
+3.2  AUTHENTICATION & AUTHORIZATION  MANDATORY
+     • Payload CMS handles auth (JWT-based, httpOnly cookie).
+     • Two roles: admin | artist  (defined in access.ts).
+     • Access-control functions must be re-used from access.ts — never
+       duplicate role logic inline.
+     • Artists can only manage their own linked artist profile and their
+       own works.  Admin-only actions: user creation, user deletion, style
+       management, page management.
+     • Public routes (/, /portfolio/*, /api/media/*) must remain readable
+       without authentication.
+
+3.3  INPUT VALIDATION  MANDATORY
+     • All user-submitted forms (inquiries, newsletter, contact) must
+       validate on both client AND server.
+     • Sanitise free-text fields before rendering — Payload's Lexical
+       editor output is HTML, which must be treated as potentially unsafe
+       unless explicitly trusted.
+     • File uploads: restrict to MIME types declared in payload.config.ts
+       (jpeg, png, webp, avif, svg+xml).  Maximum file size: 10 MB.
+
+3.4  CSRF / XSS  MANDATORY
+     • Payload's built-in CSRF protection is enabled — do not disable.
+     • Never use dangerouslySetInnerHTML on user-supplied content without
+       a sanitisation layer.
+     • CSP headers should be configured in next.config.mjs for production.
+
+3.5  DATA PRIVACY  STANDARD
+     • Inquiry collection stores PII (name, email, telegram) — access to
+       the inquiries collection is restricted to admin role only.
+     • Age confirmation (18+) and privacy consent are required fields on
+       every inquiry submission.
+
+# ── 4. TYPESCRIPT ──────────────────────────────────────────────────────────
+
+4.1  STRICT MODE  MANDATORY
+     • tsconfig.json has "strict": true — never weaken it.
+     • Use const for immutable bindings, let only when reassignment is needed.
+     • NEVER use var.  NEVER use any — prefer unknown and type guards.
+     • Prefer type over interface for props shapes; use interface for
+       class-like structures that benefit from declaration merging.
+
+4.2  PATH ALIASES
+     • @/  maps to the project root (aurora-ash-tattoo/).
+     • @payload-config  maps to ./payload.config.ts.
+     • Always use aliases for internal imports — no relative ../../ chains.
+
+4.3  TYPE GENERATION
+     • Payload auto-generates payload-types.ts — never edit it by hand.
+     • Run npm run generate:types after schema changes.
+
+# ── 5. CSS & STYLING ──────────────────────────────────────────────────────
+
+5.1  CUSTOM PROPERTIES  MANDATORY
+     • All colours, spacing, typography scales, and transition durations
+       must be defined as CSS custom properties in a global theme file.
+     • Never use magic numbers — add a comment explaining non-obvious values
+       (e.g. /* 0.618 — golden-ratio spacing */).
+
+5.2  TAILWIND USAGE
+     • Tailwind utility classes are the primary styling method.
+     • Use Tailwind's arbitrary-value syntax (w-[320px]) sparingly — prefer
+       design-token-aligned values.
+     • Custom component classes (e.g. .btn--primary) may use @apply in
+       component-level CSS modules when a utility pattern repeats ≥ 3 times.
+
+5.3  BEM NAMING  STANDARD
+     • Custom CSS classes follow BEM: .block__element--modifier.
+     • Blocks map to React components (e.g. .artist-card).
+     • Elements are children (e.g. .artist-card__portrait).
+     • Modifiers are states/variants (e.g. .artist-card--featured).
+
+5.4  MOBILE-FIRST  MANDATORY
+     • Base styles target viewports < 768 px.
+     • Use min-width media queries (Tailwind's md:, lg:, xl: prefixes).
+     • Test every component at 375 px, 768 px, 1024 px, and 1440 px.
+
+# ── 6. ANIMATION ───────────────────────────────────────────────────────────
+
+6.1  PERFORMANCE  MANDATORY
+     • All animations must target only compositor-friendly properties:
+       opacity, transform (translate, scale, rotate).  Never animate
+       width, height, top, left, margin, or padding.
+     • CSS transitions are preferred over JS-driven animations for hover
+       states and simple entrances.
+     • Framer Motion is reserved for scroll-linked animations, page
+       transitions, and complex gesture-driven interactions.
+     • Use will-change sparingly and only on elements that will animate
+       within the next 200 ms.
+
+# ── 7. REACT / NEXT.JS ────────────────────────────────────────────────────
+
+7.1  COMPONENT ARCHITECTURE  STANDARD
+     • Every component has a single responsibility.  If a component
+       exceeds ~200 lines, extract sub-components.
+     • File naming: PascalCase for components (ArtistCard.tsx),
+       camelCase for utilities (formatDate.ts).
+     • Co-locate component tests and styles: ArtistCard.tsx,
+       ArtistCard.test.tsx, ArtistCard.module.css live in the same folder.
+
+7.2  SERVER vs CLIENT COMPONENTS
+     • Default to Server Components.  Add 'use client' only when the
+       component uses hooks, event handlers, or browser-only APIs.
+     • Fetch data on the server via Payload's local API — never expose
+       the Payload REST endpoint publicly unless absolutely necessary.
+
+7.3  METADATA & SEO  MANDATORY
+     • Every route must export a metadata object (or use generateMetadata).
+     • Open Graph images are required for all artist pages and the home page.
+     • Alt text is mandatory on every <Image> component.
+
+# ── 8. PAYLOAD CMS ─────────────────────────────────────────────────────────
+
+8.1  COLLECTION STRUCTURE
+     • collections: users, media, styles, artists, works, pages, inquiries
+     • globals:     siteSettings
+     • Versioning with drafts is enabled on artists, works, and pages.
+
+8.2  ACCESS CONTROL
+     • All access rules are centralized in access.ts.
+     • New collections MUST declare explicit access.create / read /
+       update / delete — never rely on Payload defaults.
+
+8.3  HOOKS
+     • beforeChange hooks are used for slug generation and
+       automatic uploadedBy assignment.
+     • Rate-limiting on the inquiries collection (create operation)
+       must be implemented before production launch.
+
+8.4  MEDIA
+     • Upload directory: public/media/
+     • Image sizes generated: thumbnail (400×400), card (800w),
+       feature (1200w), hero (1920w).
+     • Images from external sources must be downloaded and served locally —
+       no hotlinking.
+
+# ── 9. PERFORMANCE ─────────────────────────────────────────────────────────
+
+9.1  CORE WEB VITALS  MANDATORY
+     • LCP < 2.5 s — prioritise hero images with fetchpriority="high".
+     • CLS < 0.1  — always set explicit width/height on images.
+     • INP < 200 ms — avoid long tasks; defer non-critical scripts.
+
+9.2  IMAGES
+     • Use Next.js <Image> component for all raster images.
+     • Provide sizes prop for responsive image selection.
+     • Use placeholder="blur" with a base64 blurDataURL for above-the-fold images.
+
+9.3  BUNDLE SIZE
+     • No dependency added without a documented reason.  Prefer native
+       APIs over libraries (e.g. Intl.DateTimeFormat instead of dayjs).
+     • Use next/dynamic with ssr: false for heavy client-only components
+       (maps, complex animations).
+
+# ── 10. ACCESSIBILITY (a11y) ───────────────────────────────────────────────
+
+10.1  MANDATORY
+     • Semantic HTML: use <header>, <nav>, <main>, <section>, <article>,
+       <aside>, <footer> — not <div> soup.
+     • All interactive elements must be keyboard-accessible (Tab, Enter, Escape).
+     • Focus indicators must be visible (never use outline: none without
+       a replacement style).
+     • aria-label on all icon-only buttons and links.
+     • Color contrast ratio ≥ 4.5:1 for body text, ≥ 3:1 for large text.
+
+10.2  STANDARD
+     • Prefers-reduced-motion: disable all non-essential animations when
+       the user's OS setting is active.
+     • Form inputs must have associated <label> elements.
+
+# ── 11. CODE QUALITY ───────────────────────────────────────────────────────
+
+11.1  LINTING  MANDATORY
+     • ESLint 9 with eslint-config-next (core-web-vitals + typescript).
+     • Run npm run lint before every commit.  Zero warnings allowed.
+
+11.2  FORMATTING
+     • Indentation: 2 spaces.  No tabs.
+     • Semicolons: required.
+     • Trailing commas: always (ES5).
+     • Quotes: single quotes for JSX/TS, double for JSX props.
+
+11.3  COMMENTS
+     • Explain WHY, not WHAT.  The code should be self-documenting for
+       the "what".
+     • Non-obvious values must have an inline comment explaining their
+       derivation (e.g. /* 0.618 — golden ratio for card aspect */).
+
+# ── 12. ENVIRONMENT & DEPLOYMENT ───────────────────────────────────────────
+
+12.1  LOCAL DEVELOPMENT
+     • npm run dev       — starts Next.js + Payload on :3000
+     • npm run devsafe   — cleans .next cache before starting
+     • npm run payload   — Payload CLI
+     • npm run seed      — opens seed endpoint in browser
+
+12.2  BUILD
+     • npm run build     — Next.js production build
+     • TypeScript errors are fatal — the build WILL fail on type errors.
+     • All environment variables required at build time must be prefixed
+       with NEXT_PUBLIC_ or provided in .env.production.
+
+12.3  PRODUCTION
+     • npm run start     — starts the production server
+     • PAYLOAD_SECRET must be a strong, unique value per environment.
+     • Database file (payload.db) must be backed up regularly.
+     • Enable Payload's rate-limiter plugin before launch.
+
+# ── 13. TESTING ────────────────────────────────────────────────────────────
+
+13.1  STANDARD
+     • Critical paths (inquiry submission, auth flow, artist page render)
+       should have integration tests.
+     • Component tests for reusable UI primitives (Button, Modal, Accordion).
+     • Access-control functions in access.ts must have unit tests.
+     • Use Playwright or Cypress for E2E; Vitest + React Testing Library
+       for unit/component tests.
+
+# ── 14. VERSION CONTROL ────────────────────────────────────────────────────
+
+14.1  MANDATORY
+     • .gitignore must include: .env.local, .next/, payload.db, node_modules/,
+       tsconfig.tsbuildinfo.
+     • Never commit generated files (payload-types.ts is an exception — it
+       is committed so CI/CD can type-check without a running Payload instance).
+     • Commit messages: imperative mood, ≤ 72 chars for subject, blank line
+       before body.  Prefix with scope when helpful (feat:, fix:, chore:).
+
+# ────────────────────────────────────────────────────────────────────────────
+# End of .clinerules — Aurora & Ash Tattoo

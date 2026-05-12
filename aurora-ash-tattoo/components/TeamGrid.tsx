@@ -15,30 +15,18 @@ export type TeamMember = {
 
 interface Props {
   members: TeamMember[]
-  locale?: 'en' | 'ru'
 }
 
 const COPY = {
-  en: {
-    viewPortfolio: 'View portfolio',
-    noPortrait: 'Portrait coming soon',
-  },
-  ru: {
-    viewPortfolio: 'Посмотреть портфолио',
-    noPortrait: 'Портрет скоро будет',
-  },
+  viewPortfolio: 'View portfolio',
+  noPortrait: 'Portrait coming soon',
 }
 
-export default function TeamGrid({ members, locale = 'en' }: Props) {
-  const t = COPY[locale]
-
+export default function TeamGrid({ members }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
       {members.map((member, idx) => {
-        const portfolioHref =
-          locale === 'en'
-            ? `/portfolio/${member.slug}`
-            : `/portfolio/${member.slug}?locale=ru`
+        const portfolioHref = `/portfolio/${member.slug}`
 
         return (
           <motion.div
@@ -62,7 +50,7 @@ export default function TeamGrid({ members, locale = 'en' }: Props) {
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center label-line text-[#D4AF37]/40">
-                    {t.noPortrait}
+                    {COPY.noPortrait}
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/25 to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-45 group-focus-within:opacity-45" />
@@ -76,7 +64,7 @@ export default function TeamGrid({ members, locale = 'en' }: Props) {
                   <p className="label-line text-[#D4AF37]/60 mb-3">{member.role}</p>
                 ) : null}
                 <p className="label-line text-[#D4AF37]/45 transition-colors duration-300 group-hover:text-[#D4AF37] group-focus-within:text-[#D4AF37]">
-                  {t.viewPortfolio} <span aria-hidden="true">→</span>
+                  {COPY.viewPortfolio} <span aria-hidden="true">→</span>
                 </p>
               </div>
             </Link>

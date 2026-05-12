@@ -130,7 +130,7 @@ export default async function PrivacyPage({ searchParams }: Props) {
           </p>
         </article>
       </main>
-      <Footer locale={safeLocale} />
+      <Footer />
     </>
   )
 }

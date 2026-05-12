@@ -1,10 +1,6 @@
-import { getPayload, DEFAULT_LOCALE, type Locale } from '../lib/payload'
+import { getPayload } from '../lib/payload'
 
 import TeamGrid, { type TeamMember } from './TeamGrid'
-
-interface TeamProps {
-  locale?: Locale
-}
 
 const FALLBACK: TeamMember[] = [
   { id: 1, name: 'Alex White North', slug: 'alex', role: 'Lead Artist / Blackwork', portrait: { url: '/portfolio/alex.png', alt: 'Alex' } },
@@ -13,20 +9,11 @@ const FALLBACK: TeamMember[] = [
 ]
 
 const COPY = {
-  en: {
-    eyebrow: 'The collective',
-    heading: 'Artists',
-  },
-  ru: {
-    eyebrow: 'Коллектив',
-    heading: 'Артисты',
-  },
+  eyebrow: 'The collective',
+  heading: 'Artists',
 }
 
-export default async function Team({ locale = DEFAULT_LOCALE }: TeamProps = {}) {
-  const safeLocale: 'en' | 'ru' = locale === 'ru' ? 'ru' : 'en'
-  const t = COPY[safeLocale]
-
+export default async function Team() {
   let members: TeamMember[] = FALLBACK
 
   try {
@@ -35,7 +22,6 @@ export default async function Team({ locale = DEFAULT_LOCALE }: TeamProps = {}) 
       collection: 'artists',
       where: { featured: { equals: true } },
       sort: 'order',
-      locale: safeLocale,
       depth: 1,
       limit: 12,
     })
@@ -60,12 +46,12 @@ export default async function Team({ locale = DEFAULT_LOCALE }: TeamProps = {}) 
     >
       <div className="max-w-7xl mx-auto px-6 md:px-8">
         <div className="text-center mb-16 md:mb-20">
-          <p className="label-line text-[#D4AF37]/55 mb-4">{t.eyebrow}</p>
+          <p className="label-line text-[#D4AF37]/55 mb-4">{COPY.eyebrow}</p>
           <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl tracking-tight">
-            {t.heading}
+            {COPY.heading}
           </h2>
         </div>
-        <TeamGrid members={members} locale={safeLocale} />
+        <TeamGrid members={members} />
       </div>
     </section>
   )

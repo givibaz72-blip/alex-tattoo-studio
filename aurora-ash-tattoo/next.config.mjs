@@ -13,6 +13,8 @@ const nextConfig = {
   },
   outputFileTracingRoot: __dirname,
   serverExternalPackages: ['drizzle-kit', '@libsql/client', '@payloadcms/db-sqlite'],
+  // Next.js 16 removed the `eslint.ignoreDuringBuilds` config key — lint now
+  // lives in `next lint` only. We rely on TypeScript checks during build.
   images: {
     remotePatterns: [
       { protocol: 'http', hostname: 'localhost', port: '3000', pathname: '/api/media/**' },

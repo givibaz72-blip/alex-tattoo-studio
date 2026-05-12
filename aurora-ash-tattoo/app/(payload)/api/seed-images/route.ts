@@ -1,11 +1,10 @@
 /**
- * Media seed endpoint.
+ * DEPRECATED endpoint.
  *
- * Open  http://localhost:3000/api/seed-images  in the browser while logged in
- * as admin. Reads files from public/seed-images, generates placeholders for
- * what is missing, and attaches everything to studio / artists / works.
- *
- * Idempotent: existing media is reused, already-set fields are not overwritten.
+ * Media seeding is now part of the main `/api/seed` orchestrator (which runs
+ * placeholders → content → media → pages in the right order). This route is
+ * kept for backwards compatibility — it just runs the media-seed step in
+ * isolation. Prefer `/api/seed`.
  */
 import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
@@ -17,7 +16,12 @@ export async function GET() {
   try {
     const payload = await getPayload({ config })
     const result = await runMediaSeed(payload)
-    return NextResponse.json({ ok: true, ...result })
+    return NextResponse.json({
+      ok: true,
+      deprecated: true,
+      hint: 'Use /api/seed instead — it orchestrates content + media + pages in one pass.',
+      ...result,
+    })
   } catch (err: any) {
     console.error('[seed-images] failed', err)
     return NextResponse.json(

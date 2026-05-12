@@ -17,134 +17,84 @@ export type ArtistOption = {
 
 interface InquiryFormProps {
   artists: ArtistOption[]
+  /** Studio email from CMS siteSettings — used for the error-state fallback link. */
+  studioEmail?: string
 }
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
 const VISION_MIN = 30
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const STORAGE_KEY = 'aurora-inquiry-draft-v1'
+const TELEGRAM_RE = /^@?[a-zA-Z0-9_]{4,32}$/
+const PHONE_RE = /^[+\d][\d\s()-]{6,}$/
+const STORAGE_KEY = 'aurora-inquiry-draft-v2'
 
-const BUDGET_OPTIONS = {
-  en: [
-    { value: 'under_300', label: 'Under $300' },
-    { value: '300_800', label: '$300 – $800' },
-    { value: '800_1500', label: '$800 – $1500' },
-    { value: 'over_1500', label: 'Over $1500' },
-    { value: 'undecided', label: 'Not sure yet' },
-  ],
-  ru: [
-    { value: 'under_300', label: 'До $300' },
-    { value: '300_800', label: '$300 – $800' },
-    { value: '800_1500', label: '$800 – $1500' },
-    { value: 'over_1500', label: 'Более $1500' },
-    { value: 'undecided', label: 'Пока не знаю' },
-  ],
-} as const
+const STUDIO_EMAIL_FALLBACK = 'hello@auroraash.com'
+
+const BUDGET_OPTIONS = [
+  { value: 'under_300', label: 'Under $300' },
+  { value: '300_800', label: '$300 – $800' },
+  { value: '800_1500', label: '$800 – $1500' },
+  { value: 'over_1500', label: 'Over $1500' },
+  { value: 'undecided', label: 'Not sure yet' },
+]
 
 const COPY = {
-  en: {
-    pickArtist: 'Pick an artist',
-    yourVision: 'Your vision',
-    visionPlaceholder:
-      'Describe the story or symbols you want to carry on your skin (min 30 characters).',
-    referencesLabel: 'Reference links (optional)',
-    referencesPh:
-      'Pinterest / Instagram / Drive links — one per line. Helps us understand your direction.',
-    placement: 'Placement',
-    placementPh: 'Forearm, ribs, spine...',
-    size: 'Approximate size (cm)',
-    sizePh: 'e.g. 15x10',
-    budgetLabel: 'Budget range (optional)',
-    budgetHint: 'Helps us match your idea with the right artist and time slot.',
-    contact: 'Contact details',
-    nameLabel: 'Full name',
-    namePh: 'Your full name',
-    emailLabel: 'Email',
-    emailPh: 'you@email.com',
-    telegramLabel: 'Telegram or phone (optional)',
-    telegramPh: '@yourhandle or +1 555 0123',
-    age: 'I confirm I am 18 years of age or older.',
-    privacyA: 'I have read and agree to the ',
-    privacyLink: 'Privacy policy',
-    privacyB: '.',
-    back: 'Back',
-    next: 'Next',
-    submit: 'Submit',
-    sending: 'Sending...',
-    closeAria: 'Close form and return home',
-    artistsEmpty: 'Artists are temporarily unavailable. Please try again later.',
-    successTitle: 'Thank you',
-    successText: (name: string) =>
-      name
-        ? `Thank you, ${name}. Your request is in our hands — expect a personal reply within 48 hours.`
-        : 'Your request is in our hands — expect a personal reply within 48 hours.',
-    successHome: 'Back to home',
-    submitError: 'Something went wrong. Please try again or email studio@aurora-ash.com.',
-    chars: (n: number, min: number) =>
-      n >= min ? `${n} characters` : `${n}/${min} characters minimum`,
-    errors: {
-      artistRequired: 'Please select an artist.',
-      visionShort: `Please describe your vision in at least ${VISION_MIN} characters.`,
-      placementRequired: 'Please specify the placement.',
-      sizeRequired: 'Please specify approximate size.',
-      nameRequired: 'Please enter your full name.',
-      emailInvalid: 'Please enter a valid email address.',
-      ageRequired: 'You must be 18 or older to submit a tattoo inquiry.',
-      privacyRequired: 'Please agree to the privacy policy to continue.',
-    },
-  },
-  ru: {
-    pickArtist: 'Выберите артиста',
-    yourVision: 'Ваша идея',
-    visionPlaceholder:
-      'Опишите историю или символы, которые хотите носить на коже (минимум 30 символов).',
-    referencesLabel: 'Ссылки на референсы (необязательно)',
-    referencesPh:
-      'Pinterest / Instagram / Google Drive — по одной ссылке на строку. Помогает нам понять направление.',
-    placement: 'Расположение',
-    placementPh: 'Предплечье, рёбра, позвоночник...',
-    size: 'Приблизительный размер (см)',
-    sizePh: 'напр. 15x10',
-    budgetLabel: 'Бюджет (необязательно)',
-    budgetHint: 'Помогает подобрать артиста и подходящий слот.',
-    contact: 'Контактные данные',
-    nameLabel: 'Имя и фамилия',
-    namePh: 'Ваше имя и фамилия',
-    emailLabel: 'Email',
-    emailPh: 'you@email.com',
-    telegramLabel: 'Telegram или телефон (необязательно)',
-    telegramPh: '@yourhandle или +7 999 0000',
-    age: 'Я подтверждаю, что мне исполнилось 18 лет.',
-    privacyA: 'Я ознакомился с ',
-    privacyLink: 'политикой конфиденциальности',
-    privacyB: ' и согласен с её условиями.',
-    back: 'Назад',
-    next: 'Далее',
-    submit: 'Отправить',
-    sending: 'Отправка...',
-    closeAria: 'Закрыть форму и вернуться на главную',
-    artistsEmpty: 'Список артистов временно недоступен. Попробуйте позже.',
-    successTitle: 'Спасибо',
-    successText: (name: string) =>
-      name
-        ? `Спасибо, ${name}. Ваш запрос у нас — ответим лично в течение 48 часов.`
-        : 'Ваш запрос у нас — ответим лично в течение 48 часов.',
-    successHome: 'На главную',
-    submitError:
-      'Что-то пошло не так. Попробуйте снова или напишите на studio@aurora-ash.com.',
-    chars: (n: number, min: number) =>
-      n >= min ? `${n} символов` : `${n}/${min} символов минимум`,
-    errors: {
-      artistRequired: 'Пожалуйста, выберите артиста.',
-      visionShort: `Опишите идею подробнее (минимум ${VISION_MIN} символов).`,
-      placementRequired: 'Укажите место расположения.',
-      sizeRequired: 'Укажите примерный размер.',
-      nameRequired: 'Введите имя и фамилию.',
-      emailInvalid: 'Введите корректный email.',
-      ageRequired: 'Для отправки заявки необходимо подтверждение 18+.',
-      privacyRequired: 'Пожалуйста, согласитесь с политикой конфиденциальности.',
-    },
+  pickArtist: 'Pick an artist',
+  yourVision: 'Your vision',
+  visionPlaceholder:
+    'Describe the story or symbols you want to carry on your skin (min 30 characters).',
+  referencesLabel: 'Reference links (optional)',
+  referencesPh:
+    'Pinterest / Instagram / Drive links — one per line. Helps us understand your direction.',
+  placement: 'Placement',
+  placementPh: 'Forearm, ribs, spine...',
+  size: 'Approximate size',
+  sizePh: 'e.g. 15 × 10 cm or 6 × 4 in',
+  budgetLabel: 'Budget range (optional)',
+  budgetHint: 'Helps us match your idea with the right artist and time slot.',
+  contact: 'Contact details',
+  contactHint: 'Provide at least one — email, phone, or Telegram. We respond on whichever you fill in.',
+  nameLabel: 'Full name',
+  namePh: 'Your full name',
+  emailLabel: 'Email',
+  emailPh: 'you@email.com',
+  phoneLabel: 'Phone (optional)',
+  phonePh: '+1 555 0123',
+  telegramLabel: 'Telegram (optional)',
+  telegramPh: '@yourhandle',
+  age: 'I confirm I am 18 years of age or older.',
+  privacyA: 'I have read and agree to the ',
+  privacyLink: 'Privacy policy',
+  privacyB: '.',
+  back: 'Back',
+  next: 'Next',
+  submit: 'Submit',
+  sending: 'Sending...',
+  closeAria: 'Close form and return home',
+  artistsEmpty: 'Artists are temporarily unavailable. Please try again later.',
+  successTitle: 'Thank you',
+  successText: (name: string) =>
+    name
+      ? `Thank you, ${name}. Your request is in our hands — expect a personal reply within 48 hours.`
+      : 'Your request is in our hands — expect a personal reply within 48 hours.',
+  successHome: 'Back to home',
+  submitError: (email: string) =>
+    `Something went wrong. Please try again or write to ${email}.`,
+  chars: (n: number, min: number) =>
+    n >= min ? `${n} characters` : `${n}/${min} characters minimum`,
+  errors: {
+    artistRequired: 'Please select an artist.',
+    visionShort: `Please describe your vision in at least ${VISION_MIN} characters.`,
+    placementRequired: 'Please specify the placement.',
+    sizeRequired: 'Please specify approximate size.',
+    nameRequired: 'Please enter your full name.',
+    emailInvalid: 'Please enter a valid email address.',
+    phoneInvalid: 'Please enter a valid phone number (digits, +, spaces).',
+    telegramInvalid: 'Please enter a Telegram handle (letters, digits, underscore, 4–32 characters).',
+    contactRequired: 'Please provide at least one contact: email, phone, or Telegram.',
+    ageRequired: 'You must be 18 or older to submit a tattoo inquiry.',
+    privacyRequired: 'Please agree to the privacy policy to continue.',
   },
 }
 
@@ -157,6 +107,7 @@ type FormData = {
   budget: string
   name: string
   email: string
+  phone: string
   telegram: string
   ageConfirmed: boolean
   privacyConsent: boolean
@@ -171,18 +122,19 @@ const INITIAL_FORM: FormData = {
   budget: '',
   name: '',
   email: '',
+  phone: '',
   telegram: '',
   ageConfirmed: false,
   privacyConsent: false,
 }
 
-export default function InquiryForm({ artists }: InquiryFormProps) {
+export default function InquiryForm({ artists, studioEmail }: InquiryFormProps) {
+  const errorEmail = studioEmail || STUDIO_EMAIL_FALLBACK
   const searchParams = useSearchParams()
   const initialArtist = searchParams.get('artist') ?? ''
-  const locale: 'en' | 'ru' = searchParams.get('locale') === 'ru' ? 'ru' : 'en'
-  const t = COPY[locale]
-  const homeHref = locale === 'en' ? '/' : '/?locale=ru'
-  const privacyHref = locale === 'en' ? '/privacy' : '/privacy?locale=ru'
+  const t = COPY
+  const homeHref = '/'
+  const privacyHref = '/privacy'
 
   const [step, setStep] = useState(1)
   const [status, setStatus] = useState<Status>('idle')
@@ -214,7 +166,7 @@ export default function InquiryForm({ artists }: InquiryFormProps) {
     setFormData((p) => ({
       ...p,
       ...draftFormData,
-      // URL ?artist= имеет приоритет над черновиком
+      // URL ?artist= has priority over draft
       artist: initialArtist || draftFormData.artist || p.artist || '',
     }))
     if (draftStep) setStep(draftStep)
@@ -246,7 +198,24 @@ export default function InquiryForm({ artists }: InquiryFormProps) {
     }
     if (s === 4) {
       if (!formData.name.trim()) e.name = t.errors.nameRequired
-      if (!EMAIL_RE.test(formData.email.trim())) e.email = t.errors.emailInvalid
+
+      const emailRaw = formData.email.trim()
+      const phoneRaw = formData.phone.trim()
+      const telegramRaw = formData.telegram.trim()
+
+      // Per-field format validation (only when filled).
+      if (emailRaw && !EMAIL_RE.test(emailRaw)) e.email = t.errors.emailInvalid
+      if (phoneRaw && !PHONE_RE.test(phoneRaw)) e.phone = t.errors.phoneInvalid
+      if (telegramRaw && !TELEGRAM_RE.test(telegramRaw)) e.telegram = t.errors.telegramInvalid
+
+      // Require AT LEAST one valid contact channel.
+      const hasValidEmail = Boolean(emailRaw) && !e.email
+      const hasValidPhone = Boolean(phoneRaw) && !e.phone
+      const hasValidTelegram = Boolean(telegramRaw) && !e.telegram
+      if (!hasValidEmail && !hasValidPhone && !hasValidTelegram) {
+        e.contact = t.errors.contactRequired
+      }
+
       if (!formData.ageConfirmed) e.ageConfirmed = t.errors.ageRequired
       if (!formData.privacyConsent) e.privacyConsent = t.errors.privacyRequired
     }
@@ -267,8 +236,13 @@ export default function InquiryForm({ artists }: InquiryFormProps) {
     try {
       const selectedArtist = artists.find((a) => a.slug === formData.artist)
       const email = formData.email.trim()
+      const phone = formData.phone.trim()
       const telegram = formData.telegram.trim()
-      const contactCombined = telegram ? `${email} · ${telegram}` : email
+
+      // Build a human-readable combined contact string for the legacy field,
+      // joining whichever channels the client provided.
+      const contactParts = [email, phone, telegram].filter(Boolean)
+      const contactCombined = contactParts.join(' · ')
 
       const payload: Record<string, unknown> = {
         artist: selectedArtist?.id,
@@ -277,7 +251,8 @@ export default function InquiryForm({ artists }: InquiryFormProps) {
         size: formData.size,
         name: formData.name,
         contact: contactCombined,
-        email,
+        email: email || undefined,
+        phone: phone || undefined,
         telegram: telegram || undefined,
         references: formData.references.trim() || undefined,
         budget: formData.budget || undefined,
@@ -303,7 +278,7 @@ export default function InquiryForm({ artists }: InquiryFormProps) {
     } catch (e) {
       console.error('[Inquiry] submit failed', e)
       setStatus('error')
-      setErrorMsg(t.submitError)
+      setErrorMsg(t.submitError(errorEmail))
     }
   }
 
@@ -340,27 +315,11 @@ export default function InquiryForm({ artists }: InquiryFormProps) {
   return (
     <main
       id="main"
-      className="min-h-screen bg-[#121212] text-[#D4AF37] p-6 md:p-10 flex flex-col items-center justify-center relative"
+      className="min-h-screen bg-[#121212] text-[#D4AF37] p-6 md:p-10 pt-28 md:pt-32 flex flex-col items-center justify-center relative"
     >
-      <Link
-        href={homeHref}
-        aria-label={t.closeAria}
-        className="absolute top-6 right-6 md:top-10 md:right-10 z-50 inline-flex items-center justify-center w-10 h-10 border border-[#D4AF37]/40 hover:bg-[#D4AF37] hover:text-black transition-colors"
-      >
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 18 18"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          aria-hidden="true"
-        >
-          <line x1="3" y1="3" x2="15" y2="15" />
-          <line x1="15" y1="3" x2="3" y2="15" />
-        </svg>
-      </Link>
+      {/* No standalone close button here — the page is wrapped by the global
+          NavBar (with Menu/Close + logo link) on `/inquiry`, so a separate
+          close cross would just sit on top of the menu button. */}
 
       <div
         className="mb-12 flex space-x-3 w-full max-w-md"
@@ -414,7 +373,7 @@ export default function InquiryForm({ artists }: InquiryFormProps) {
                           : 'border-transparent opacity-50 hover:opacity-100'
                       }`}
                     >
-                      <div className="h-80 overflow-hidden relative bg-white/5">
+                      <div className="h-80 overflow-hidden relative bg-gradient-to-b from-[#1a1410] to-[#0c0c0c]">
                         {a.portrait ? (
                           <MediaImage
                             media={a.portrait}
@@ -424,7 +383,24 @@ export default function InquiryForm({ artists }: InquiryFormProps) {
                             sizes="(max-width: 768px) 100vw, 33vw"
                             className="object-cover transition-transform duration-700 group-hover:scale-110"
                           />
-                        ) : null}
+                        ) : (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center text-[#D4AF37]/35">
+                            <span className="font-serif italic text-[64px] leading-none mb-3">
+                              {a.name
+                                .split(/\s+/)
+                                .slice(0, 2)
+                                .map((w) => w[0]?.toUpperCase())
+                                .filter(Boolean)
+                                .join('')}
+                            </span>
+                            <span className="font-serif italic text-sm tracking-wide opacity-75">
+                              {a.name}
+                            </span>
+                            <span className="mt-3 text-[10px] uppercase tracking-[0.3em] text-[#D4AF37]/30">
+                              Portrait coming soon
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div
                         className={`p-4 text-center transition-colors ${
@@ -553,7 +529,7 @@ export default function InquiryForm({ artists }: InquiryFormProps) {
                   aria-label={t.budgetLabel}
                   className="flex flex-wrap gap-3 justify-center"
                 >
-                  {BUDGET_OPTIONS[locale].map((opt) => {
+                  {BUDGET_OPTIONS.map((opt) => {
                     const checked = formData.budget === opt.value
                     return (
                       <button
@@ -580,13 +556,18 @@ export default function InquiryForm({ artists }: InquiryFormProps) {
           )}
 
           {step === 4 && (
-            <div className="w-full max-w-xl flex flex-col gap-8">
-              <h2 className="font-serif text-3xl md:text-4xl tracking-tight mb-2 text-center">
-                {t.contact}
-              </h2>
+            <div className="w-full max-w-xl flex flex-col gap-7">
+              <div className="text-center">
+                <h2 className="font-serif text-3xl md:text-4xl tracking-tight mb-3">
+                  {t.contact}
+                </h2>
+                <p className="text-[#D4AF37]/65 text-sm max-w-md mx-auto leading-relaxed">
+                  {t.contactHint}
+                </p>
+              </div>
 
               <div>
-                <label htmlFor="name-field" className="label-line text-[#D4AF37]/60 mb-3 block">
+                <label htmlFor="name-field" className="label-line text-[#D4AF37]/65 mb-3 block">
                   {t.nameLabel}
                 </label>
                 <input
@@ -606,42 +587,82 @@ export default function InquiryForm({ artists }: InquiryFormProps) {
                 ) : null}
               </div>
 
-              <div>
-                <label htmlFor="email-field" className="label-line text-[#D4AF37]/60 mb-3 block">
-                  {t.emailLabel}
-                </label>
-                <input
-                  id="email-field"
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  placeholder={t.emailPh}
-                  value={formData.email}
-                  onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
-                  aria-invalid={Boolean(errors.email)}
-                  className={`${inputBase} ${errors.email ? inputErr : inputOk}`}
-                />
-                {errors.email ? (
-                  <p className="mt-2 text-rose-400 text-xs" role="alert">
-                    {errors.email}
+              <fieldset className="border border-[#D4AF37]/15 p-5 pt-4 -mt-1">
+                <legend className="label-line text-[#D4AF37]/65 px-2">
+                  Reach me by — at least one
+                </legend>
+
+                <div className="mt-2">
+                  <label htmlFor="email-field" className="label-line text-[#D4AF37]/60 mb-2 block">
+                    {t.emailLabel}
+                  </label>
+                  <input
+                    id="email-field"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    placeholder={t.emailPh}
+                    value={formData.email}
+                    onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
+                    aria-invalid={Boolean(errors.email)}
+                    className={`${inputBase} ${errors.email ? inputErr : inputOk}`}
+                  />
+                  {errors.email ? (
+                    <p className="mt-2 text-rose-400 text-xs" role="alert">
+                      {errors.email}
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="mt-6">
+                  <label htmlFor="phone-field" className="label-line text-[#D4AF37]/60 mb-2 block">
+                    {t.phoneLabel}
+                  </label>
+                  <input
+                    id="phone-field"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder={t.phonePh}
+                    value={formData.phone}
+                    onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
+                    aria-invalid={Boolean(errors.phone)}
+                    className={`${inputBase} ${errors.phone ? inputErr : inputOk}`}
+                  />
+                  {errors.phone ? (
+                    <p className="mt-2 text-rose-400 text-xs" role="alert">
+                      {errors.phone}
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="mt-6">
+                  <label htmlFor="telegram-field" className="label-line text-[#D4AF37]/60 mb-2 block">
+                    {t.telegramLabel}
+                  </label>
+                  <input
+                    id="telegram-field"
+                    type="text"
+                    autoComplete="username"
+                    placeholder={t.telegramPh}
+                    value={formData.telegram}
+                    onChange={(e) => setFormData((p) => ({ ...p, telegram: e.target.value }))}
+                    aria-invalid={Boolean(errors.telegram)}
+                    className={`${inputBase} ${errors.telegram ? inputErr : inputOk}`}
+                  />
+                  {errors.telegram ? (
+                    <p className="mt-2 text-rose-400 text-xs" role="alert">
+                      {errors.telegram}
+                    </p>
+                  ) : null}
+                </div>
+
+                {errors.contact ? (
+                  <p className="mt-4 text-rose-400 text-xs text-center" role="alert">
+                    {errors.contact}
                   </p>
                 ) : null}
-              </div>
-
-              <div>
-                <label htmlFor="telegram-field" className="label-line text-[#D4AF37]/60 mb-3 block">
-                  {t.telegramLabel}
-                </label>
-                <input
-                  id="telegram-field"
-                  type="text"
-                  autoComplete="tel"
-                  placeholder={t.telegramPh}
-                  value={formData.telegram}
-                  onChange={(e) => setFormData((p) => ({ ...p, telegram: e.target.value }))}
-                  className={`${inputBase} ${inputOk}`}
-                />
-              </div>
+              </fieldset>
 
               <div className="pt-4 space-y-4">
                 <label className="flex items-start gap-3 cursor-pointer group">

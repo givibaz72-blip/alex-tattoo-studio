@@ -51,12 +51,25 @@ export default function WorksGallery({ works }: Props) {
       if (e.key === 'ArrowLeft') prev()
     }
     window.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
+    // Lock scroll + compensate for scrollbar width so the page doesn't shift.
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+    const previousPadding = document.body.style.paddingRight
+    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`
+    document.body.dataset.scrollLocked = 'true'
     return () => {
       window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = ''
+      document.body.dataset.scrollLocked = 'false'
+      document.body.style.paddingRight = previousPadding
     }
   }, [active, closeLightbox, next, prev])
+
+  // Ensure body scroll is restored when component unmounts
+  useEffect(() => {
+    return () => {
+      document.body.dataset.scrollLocked = 'false'
+      document.body.style.paddingRight = ''
+    }
+  }, [])
 
   return (
     <>
@@ -91,9 +104,9 @@ export default function WorksGallery({ works }: Props) {
                   +{count - 1}
                 </span>
               ) : null}
-              <figcaption className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-[#121212] to-transparent text-xs uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity">
+              <figcaption className="gallery-caption absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/70 to-transparent text-xs uppercase tracking-[0.2em] text-[#D4AF37]">
                 {work.title}
-                {work.placement ? <span className="opacity-60"> - {work.placement}</span> : null}
+                {work.placement ? <span className="opacity-60"> · {work.placement}</span> : null}
               </figcaption>
             </button>
           )

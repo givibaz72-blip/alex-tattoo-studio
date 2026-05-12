@@ -9,40 +9,28 @@ import SocialLinks from '../../../../components/SocialLinks'
 import NavBar from '../../../../components/NavBar'
 import Footer from '../../../../components/Footer'
 import WorksGallery from '../../../../components/WorksGallery'
-import { getPayload, DEFAULT_LOCALE, isLocale } from '../../../../lib/payload'
+import { getPayload } from '../../../../lib/payload'
 
 interface Props {
   params: Promise<{ artist: string }>
-  searchParams: Promise<{ locale?: string; preview?: string }>
+  searchParams: Promise<{ preview?: string }>
 }
 
 const COPY = {
-  en: {
-    back: 'Back',
-    inquiry: 'Inquiry',
-    selectedWorks: 'Selected works',
-    statusOpen: 'Accepting bookings',
-    statusWaitlist: 'Waitlist',
-    statusClosed: 'Closed for now',
-    notFound: 'Artist not found',
-  },
-  ru: {
-    back: 'Назад',
-    inquiry: 'Записаться',
-    selectedWorks: 'Избранные работы',
-    statusOpen: 'Принимает заявки',
-    statusWaitlist: 'Лист ожидания',
-    statusClosed: 'Запись закрыта',
-    notFound: 'Артист не найден',
-  },
+  back: 'Back',
+  inquiry: 'Inquiry',
+  selectedWorks: 'Selected works',
+  statusOpen: 'Accepting bookings',
+  statusWaitlist: 'Waitlist',
+  statusClosed: 'Closed for now',
+  notFound: 'Artist not found',
 } as const
 
-async function findArtist(slug: string, locale: 'en' | 'ru', draft: boolean) {
+async function findArtist(slug: string, draft: boolean) {
   const payload = await getPayload()
   const res = await payload.find({
     collection: 'artists',
     where: { slug: { equals: slug } },
-    locale,
     depth: 2,
     limit: 1,
     draft,
@@ -50,12 +38,11 @@ async function findArtist(slug: string, locale: 'en' | 'ru', draft: boolean) {
   return res.docs[0] ?? null
 }
 
-async function findWorks(artistId: string | number, locale: 'en' | 'ru') {
+async function findWorks(artistId: string | number) {
   const payload = await getPayload()
   const res = await payload.find({
     collection: 'works',
     where: { artist: { equals: artistId } },
-    locale,
     depth: 2,
     sort: '-createdAt',
     limit: 100,
@@ -65,12 +52,9 @@ async function findWorks(artistId: string | number, locale: 'en' | 'ru') {
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { artist: slug } = await params
-  const sp = await searchParams
-  const locale = isLocale(sp.locale) ? sp.locale : DEFAULT_LOCALE
-  const safeLocale: 'en' | 'ru' = locale === 'ru' ? 'ru' : 'en'
   try {
-    const doc: any = await findArtist(slug, safeLocale, false)
-    if (!doc) return { title: COPY[safeLocale].notFound }
+    const doc: any = await findArtist(slug, false)
+    if (!doc) return { title: COPY.notFound }
     return {
       title: doc.seo?.title ?? `${doc.name} - Aurora & Ash`,
       description: doc.seo?.description ?? doc.shortBio ?? undefined,
@@ -83,27 +67,22 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 export default async function ArtistPage({ params, searchParams }: Props) {
   const { artist: slug } = await params
   const sp = await searchParams
-  const locale = isLocale(sp.locale) ? sp.locale : DEFAULT_LOCALE
-  const safeLocale: 'en' | 'ru' = locale === 'ru' ? 'ru' : 'en'
-  const t = COPY[safeLocale]
   const draft = sp.preview === '1'
+  const t = COPY
 
   let doc: any = null
   try {
-    doc = await findArtist(slug, safeLocale, draft)
+    doc = await findArtist(slug, draft)
   } catch (err) {
     console.error('[ArtistPage] failed to load artist', err)
   }
 
   if (!doc) notFound()
 
-  const works = await findWorks(doc.id, safeLocale).catch(() => [])
+  const works = await findWorks(doc.id).catch(() => [])
 
-  const homeHref = safeLocale === 'en' ? '/' : '/?locale=ru'
-  const inquiryHref =
-    safeLocale === 'en'
-      ? `/inquiry?artist=${doc.slug}`
-      : `/inquiry?artist=${doc.slug}&locale=ru`
+  const homeHref = '/'
+  const inquiryHref = `/inquiry?artist=${doc.slug}`
 
   const statusLabel =
     doc.availability === 'open'
@@ -200,7 +179,7 @@ export default async function ArtistPage({ params, searchParams }: Props) {
           </section>
         ) : null}
       </main>
-      <Footer locale={safeLocale} />
+      <Footer />
     </>
   )
 }

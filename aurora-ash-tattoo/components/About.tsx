@@ -1,42 +1,25 @@
 import React from 'react'
-import { getPayload, type Locale, DEFAULT_LOCALE } from '../lib/payload'
+import { getPayload } from '../lib/payload'
 import MediaImage, { type MediaDoc } from './MediaImage'
 
-interface AboutProps {
-  locale?: Locale
+const FALLBACK = {
+  eyebrow: 'The philosophy',
+  heading: 'A curated space for permanent art',
+  body:
+    'We accept limited bookings per month to ensure every piece receives absolute focus. Our studio operates as a private gallery where skin meets curated vision.',
+  placeholder: 'Studio visual // 01',
 }
 
-const FALLBACK = {
-  en: {
-    eyebrow: 'The philosophy',
-    heading: 'A curated space for permanent art',
-    body:
-      'We accept limited bookings per month to ensure every piece receives absolute focus. Our studio operates as a private gallery where skin meets curated vision.',
-    placeholder: 'Studio visual // 01',
-  },
-  ru: {
-    eyebrow: 'Философия',
-    heading: 'Кураторское пространство для перманентного искусства',
-    body:
-      'Мы принимаем ограниченное число записей в месяц, чтобы каждая работа получала максимум внимания. Наша студия — это частная галерея, где кожа встречается с продуманным видением.',
-    placeholder: 'Studio visual // 01',
-  },
-} as const
-
-const About = async ({ locale = DEFAULT_LOCALE }: AboutProps) => {
-  const safeLocale: 'en' | 'ru' = locale === 'ru' ? 'ru' : 'en'
-  const t = FALLBACK[safeLocale]
-
-  let eyebrow: string = t.eyebrow
-  let heading: string = t.heading
-  let body: string = t.body
+const About = async () => {
+  let eyebrow: string = FALLBACK.eyebrow
+  let heading: string = FALLBACK.heading
+  let body: string = FALLBACK.body
   let image: MediaDoc | null = null
 
   try {
     const payload = await getPayload()
     const studio = (await payload.findGlobal({
-      slug: 'studio',
-      locale: safeLocale,
+      slug: 'siteSettings',
       depth: 1,
     })) as Record<string, unknown> & {
       about?: {
@@ -81,7 +64,7 @@ const About = async ({ locale = DEFAULT_LOCALE }: AboutProps) => {
               sizes="(max-width: 768px) 100vw, 50vw"
             />
           ) : (
-            <span className="label-line text-[#D4AF37]/30">{t.placeholder}</span>
+            <span className="label-line text-[#D4AF37]/30">{FALLBACK.placeholder}</span>
           )}
         </div>
       </div>

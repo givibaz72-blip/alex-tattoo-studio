@@ -1,161 +1,150 @@
 import Link from 'next/link'
-import { getPayload, type Locale, DEFAULT_LOCALE } from '../lib/payload'
+import Image from 'next/image'
+import { getPayload } from '../lib/payload'
 import SocialLinks from './SocialLinks'
-
-interface FooterProps {
-  locale?: Locale
-}
+import ScrollTopButton from './ScrollTopButton'
+import type { MediaDoc } from './MediaImage'
 
 const FALLBACK = {
   name: 'Aurora & Ash',
-  address: 'West Hollywood, CA',
-  phone: '+1 (323) 555-0142',
-  email: 'studio@aurora-ash.com',
-  hours: 'By appointment',
+  address: '8282 Santa Monica Blvd\nWest Hollywood, CA 90046',
+  phone: '+1 (323) 555-0190',
+  email: 'hello@auroraash.com',
+  hours: 'Mon — Sun: 12 PM — 8 PM (By Appointment Only)',
 }
 
 const COPY = {
-  en: {
-    hours: 'Hours',
-    contact: 'Contact',
-    more: 'More',
-    about: 'About the studio',
-    aftercare: 'Aftercare',
-    faq: 'FAQ & studio rules',
-    privacy: 'Privacy policy',
-    inquiry: 'Submit an inquiry',
-    rights: 'All rights reserved.',
-    note: 'By appointment only / 18+',
-  },
-  ru: {
-    hours: 'Часы работы',
-    contact: 'Контакты',
-    more: 'Ещё',
-    about: 'О студии',
-    aftercare: 'Уход',
-    faq: 'FAQ и правила студии',
-    privacy: 'Политика конфиденциальности',
-    inquiry: 'Отправить заявку',
-    rights: 'Все права защищены.',
-    note: 'Только по записи / 18+',
-  },
+  location: 'LOCATION',
+  legal: 'LEGAL',
+  contact: 'CONTACT',
+  follow: 'FOLLOW',
+  hours: 'HOURS',
+  accessibility: 'ACCESSIBILITY',
+  privacy: 'PRIVACY POLICY',
+  terms: 'TERMS OF SERVICE',
+  faq: 'FAQ & STUDIO RULES',
+  aftercare: 'AFTERCARE',
+  about: 'ABOUT THE STUDIO',
+  makeAppointment: 'MAKE AN APPOINTMENT',
 } as const
 
-export default async function Footer({ locale = DEFAULT_LOCALE }: FooterProps = {}) {
-  const safeLocale: 'en' | 'ru' = locale === 'ru' ? 'ru' : 'en'
-  const t = COPY[safeLocale]
+// Default logo lives in /public so it serves without going through CMS.
+const FALLBACK_LOGO = '/footer-logo.svg'
+const LOGO_WIDTH = 160
+const LOGO_HEIGHT = 56
 
-  let info = FALLBACK as typeof FALLBACK
+export default async function Footer() {
+  const t = COPY
+
+  let info = FALLBACK
   let social: Record<string, unknown> = {}
+  let footerLogoUrl: string = FALLBACK_LOGO
 
   try {
     const payload = await getPayload()
-    const studio = (await payload.findGlobal({
-      slug: 'studio',
-      locale: safeLocale,
+    const settings = (await payload.findGlobal({
+      slug: 'siteSettings',
       depth: 1,
     })) as Record<string, unknown> & {
-      name?: string | null
-      address?: string | null
       phone?: string | null
       email?: string | null
+      address?: string | null
       hours?: string | null
       social?: Record<string, unknown> | null
+      footerLogo?: MediaDoc | string | number | null
     }
     info = {
-      name: studio?.name ?? FALLBACK.name,
-      address: studio?.address ?? FALLBACK.address,
-      phone: studio?.phone ?? FALLBACK.phone,
-      email: studio?.email ?? FALLBACK.email,
-      hours: studio?.hours ?? FALLBACK.hours,
+      name: FALLBACK.name,
+      address: settings?.address ?? FALLBACK.address,
+      phone: settings?.phone ?? FALLBACK.phone,
+      email: settings?.email ?? FALLBACK.email,
+      hours: settings?.hours ?? FALLBACK.hours,
     }
-    social = (studio?.social ?? {}) as Record<string, unknown>
+    social = (settings?.social ?? {}) as Record<string, unknown>
+
+    const fl = settings?.footerLogo
+    if (fl && typeof fl === 'object') {
+      const url = (fl as MediaDoc).url
+      if (typeof url === 'string' && url.length > 0) footerLogoUrl = url
+    }
   } catch {
-    // fall through
+    // fall through to fallback
   }
 
-  const linkHref = (path: string) =>
-    safeLocale === 'en' ? path : `${path}${path.includes('?') ? '&' : '?'}locale=ru`
+  const telHref = `tel:${(info.phone ?? '').replace(/[^+\d]/g, '')}`
+  const mailHref = `mailto:${info.email ?? ''}`
 
   return (
-    <footer className="bg-[#0a0a0a] text-[#D4AF37] border-t border-[#D4AF37]/15 mt-12">
-      <div className="max-w-7xl mx-auto px-6 md:px-8 py-16 grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-12">
-        <div>
-          <p className="font-serif text-xl tracking-[0.18em] uppercase mb-4">{info.name}</p>
-          <p className="text-sm text-[#D4AF37]/60 leading-relaxed whitespace-pre-line">
-            {info.address}
-          </p>
+    <footer id="contact" className="bg-[#0a0a0a] text-[#D4AF37] relative border-t border-[#D4AF37]/15">
+      {/* ScrollTopButton is now fixed in the viewport bottom-right; rendered
+          here so it shares the footer subtree but its position is independent. */}
+      <ScrollTopButton />
+
+      <div className="max-w-7xl mx-auto px-6 md:px-10 pt-16 pb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+        <Link href="/" aria-label="Aurora & Ash — home" className="inline-flex items-center min-h-11">
+          <Image
+            src={footerLogoUrl}
+            alt="Aurora & Ash"
+            width={LOGO_WIDTH}
+            height={LOGO_HEIGHT}
+            unoptimized
+            className="h-auto w-[140px] md:w-[160px] opacity-90"
+            priority={false}
+          />
+        </Link>
+        <p className="font-serif italic text-[#D4AF37]/65 text-sm md:text-base max-w-md md:text-right leading-relaxed">
+          A private studio for permanent art — by appointment, in West Hollywood.
+        </p>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 md:px-10 pt-12 pb-12 grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-12 border-t border-[#D4AF37]/10">
+        <div className="footer__column">
+          <h3 className="footer__heading">{t.location}</h3>
+          <p className="footer__text whitespace-pre-line">{info.address}</p>
+          <p className="footer__subheading">{t.hours}</p>
+          <p className="footer__text">{info.hours}</p>
         </div>
 
-        <div>
-          <p className="label-line text-[#D4AF37]/55 mb-3">{t.hours}</p>
-          <p className="text-sm text-[#D4AF37]/80 leading-relaxed whitespace-pre-line">
-            {info.hours}
-          </p>
-        </div>
-
-        <div>
-          <p className="label-line text-[#D4AF37]/55 mb-3">{t.contact}</p>
-          <ul className="text-sm text-[#D4AF37]/80 space-y-1.5">
-            <li>
-              <a
-                href={`tel:${info.phone.replace(/[^+\d]/g, '')}`}
-                className="hover:text-white transition-colors"
-              >
-                {info.phone}
-              </a>
-            </li>
-            <li>
-              <a
-                href={`mailto:${info.email}`}
-                className="hover:text-white transition-colors break-all"
-              >
-                {info.email}
-              </a>
-            </li>
+        <div className="footer__column">
+          <h3 className="footer__heading">SITE</h3>
+          <ul className="footer__list">
+            <li><Link href="/about" className="footer__link">{t.about}</Link></li>
+            <li><Link href="/aftercare" className="footer__link">{t.aftercare}</Link></li>
+            <li><Link href="/faq" className="footer__link">{t.faq}</Link></li>
+            <li><Link href="/contact" className="footer__link">VISIT &amp; CONTACT</Link></li>
           </ul>
-          <div className="mt-4">
-            <SocialLinks social={social as any} />
-          </div>
+
+          <h3 className="footer__subheading mt-8">{t.legal}</h3>
+          <ul className="footer__list">
+            <li><Link href="/accessibility" className="footer__link">{t.accessibility}</Link></li>
+            <li><Link href="/privacy" className="footer__link">{t.privacy}</Link></li>
+            <li><Link href="/terms" className="footer__link">{t.terms}</Link></li>
+          </ul>
         </div>
 
-        <div>
-          <p className="label-line text-[#D4AF37]/55 mb-3">{t.more}</p>
-          <ul className="text-sm text-[#D4AF37]/80 space-y-2">
-            <li>
-              <Link href={linkHref('/about')} className="hover:text-white transition-colors">
-                {t.about}
-              </Link>
-            </li>
-            <li>
-              <Link href={linkHref('/aftercare')} className="hover:text-white transition-colors">
-                {t.aftercare}
-              </Link>
-            </li>
-            <li>
-              <Link href={linkHref('/faq')} className="hover:text-white transition-colors">
-                {t.faq}
-              </Link>
-            </li>
-            <li>
-              <Link href={linkHref('/privacy')} className="hover:text-white transition-colors">
-                {t.privacy}
-              </Link>
-            </li>
-            <li>
-              <Link href={linkHref('/inquiry')} className="hover:text-white transition-colors">
-                {t.inquiry}
-              </Link>
-            </li>
-          </ul>
+        <div className="footer__column">
+          <h3 className="footer__heading">{t.contact}</h3>
+          <a href={telHref} className="footer__link block">{info.phone}</a>
+          <a href={mailHref} className="footer__link block mt-2">{info.email}</a>
+          <Link
+            href="/inquiry"
+            className="mt-6 inline-flex items-center min-h-11 px-5 py-3 border border-[#D4AF37] text-[#D4AF37] text-[12px] tracking-[0.28em] uppercase hover:bg-[#D4AF37] hover:text-black transition-colors"
+          >
+            {t.makeAppointment}
+          </Link>
+        </div>
+
+        <div className="footer__column">
+          <h3 className="footer__heading">{t.follow}</h3>
+          <SocialLinks social={social as any} variant="footer" />
         </div>
       </div>
 
-      <div className="border-t border-[#D4AF37]/10 px-6 md:px-8 py-6 max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-2 label-line text-[#D4AF37]/45">
-        <span>
-          (c) {new Date().getFullYear()} {info.name}. {t.rights}
-        </span>
-        <span>{t.note}</span>
+      <div className="border-t border-[#D4AF37]/10">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 py-5 flex flex-col md:flex-row justify-between gap-2 text-[11px] tracking-[0.22em] uppercase text-[#D4AF37]/55">
+          <p>© {new Date().getFullYear()} {info.name} Tattoo Studio LLC. All rights reserved.</p>
+          <p>By appointment only · West Hollywood, California</p>
+        </div>
       </div>
     </footer>
   )

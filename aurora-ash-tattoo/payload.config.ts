@@ -30,8 +30,8 @@ export default buildConfig({
       afterNavLinks: ['@/components/admin/LogoutButton'],
     },
     livePreview: {
-      url: ({ data, collectionConfig, locale }) => {
-        const qs = locale?.code && locale.code !== 'en' ? '?locale=' + locale.code + '&preview=1' : '?preview=1'
+      url: ({ data, collectionConfig }) => {
+        const qs = '?preview=1'
         switch (collectionConfig?.slug) {
           case 'artists':
             return SITE_URL + '/portfolio/' + (data?.slug ?? '') + qs
@@ -57,7 +57,6 @@ export default buildConfig({
   localization: {
     locales: [
       { label: 'English', code: 'en' },
-      { label: 'Russian', code: 'ru' },
     ],
     defaultLocale: 'en',
     fallback: true,
@@ -132,7 +131,7 @@ export default buildConfig({
       },
       upload: {
         staticDir: path.resolve(dirname, 'public/media'),
-        mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'],
+        mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/svg+xml'],
         imageSizes: [
           { name: 'thumbnail', width: 400, height: 400, position: 'centre' },
           { name: 'card', width: 800 },
@@ -174,9 +173,10 @@ export default buildConfig({
       access: { read: () => true, create: isAdmin, update: isAdmin, delete: isAdmin },
       hooks: {
         beforeChange: [
-          async ({ data }) => {
-            if (data.name && !data.slug) {
-              // Import the slug generation utility
+          async ({ data, originalDoc }) => {
+            if (!data) return data;
+            // Generate slug if name exists and (slug is empty or name has changed)
+            if (data.name && (!data.slug || !originalDoc || data.name !== originalDoc?.name)) {
               const { generateSlug } = await import('./lib/slug');
               return { ...data, slug: generateSlug(data.name) };
             }
@@ -209,9 +209,8 @@ export default buildConfig({
         group: 'Content',
         description: 'Artist profile shown at /portfolio/[slug]. Remember to Publish, not just Save.',
         livePreview: {
-          url: ({ data, locale }) => {
-            const qs = locale?.code && locale.code !== 'en' ? '?locale=' + locale.code + '&preview=1' : '?preview=1'
-            return SITE_URL + '/portfolio/' + (data?.slug ?? '') + qs
+          url: ({ data }) => {
+            return SITE_URL + '/portfolio/' + (data?.slug ?? '') + '?preview=1'
           },
         },
       },
@@ -223,9 +222,10 @@ export default buildConfig({
       },
       hooks: {
         beforeChange: [
-          async ({ data }) => {
-            if (data.name && !data.slug) {
-              // Import the slug generation utility
+          async ({ data, originalDoc }) => {
+            if (!data) return data;
+            // Generate slug if name exists and (slug is empty or name has changed)
+            if (data.name && (!data.slug || !originalDoc || data.name !== originalDoc?.name)) {
               const { generateSlug } = await import('./lib/slug');
               return { ...data, slug: generateSlug(data.name) };
             }
@@ -332,9 +332,10 @@ export default buildConfig({
       },
       hooks: {
         beforeChange: [
-          async ({ data }) => {
-            if (data.title && !data.slug) {
-              // Import the slug generation utility
+          async ({ data, originalDoc }) => {
+            if (!data) return data;
+            // Generate slug if title exists and (slug is empty or title has changed)
+            if (data.title && (!data.slug || !originalDoc || data.title !== originalDoc?.title)) {
               const { generateSlug } = await import('./lib/slug');
               return { ...data, slug: generateSlug(data.title) };
             }
@@ -391,15 +392,18 @@ export default buildConfig({
       labels: { singular: 'Page', plural: 'Pages' },
       admin: {
         useAsTitle: 'title',
-        defaultColumns: ['title', 'slug', 'updatedAt'],
+        defaultColumns: ['title', 'slug', '_status', 'updatedAt'],
         group: 'Content',
+        description:
+          'Static pages built from blocks. Drag blocks in any order to compose About / FAQ / Privacy / etc.',
       },
       access: { read: () => true, create: isAdmin, update: isAdmin, delete: isAdmin },
       hooks: {
         beforeChange: [
-          async ({ data }) => {
-            if (data.title && !data.slug) {
-              // Import the slug generation utility
+          async ({ data, originalDoc }) => {
+            if (!data) return data;
+            // Generate slug if title exists and (slug is empty or title has changed)
+            if (data.title && (!data.slug || !originalDoc || data.title !== originalDoc?.title)) {
               const { generateSlug } = await import('./lib/slug');
               return { ...data, slug: generateSlug(data.title) };
             }
@@ -410,7 +414,309 @@ export default buildConfig({
       fields: [
         { name: 'title', type: 'text', required: true, localized: true, label: 'Title' },
         { name: 'slug', type: 'text', required: true, unique: true, index: true, label: 'URL slug' },
-        { name: 'content', type: 'richText', localized: true, label: 'Content' },
+        {
+          name: 'blocks',
+          type: 'blocks',
+          label: 'Page blocks',
+          admin: { description: 'Compose the page from a stack of blocks. Drag to reorder.' },
+          blocks: [
+            // ---------- HERO ----------
+            {
+              slug: 'hero',
+              labels: { singular: 'Hero block', plural: 'Hero blocks' },
+              imageAltText: 'Hero',
+              fields: [
+                { name: 'title', type: 'text', required: true, localized: true, label: 'Heading (h1)' },
+                { name: 'subtitle', type: 'text', localized: true, label: 'Subtitle' },
+                { name: 'backgroundImage', type: 'upload', relationTo: 'media', label: 'Background image' },
+                {
+                  name: 'align',
+                  type: 'select',
+                  defaultValue: 'center',
+                  label: 'Text alignment',
+                  options: [
+                    { label: 'Center', value: 'center' },
+                    { label: 'Left', value: 'left' },
+                  ],
+                },
+                {
+                  name: 'sectionId',
+                  type: 'text',
+                  label: 'Section ID (anchor)',
+                  admin: {
+                    description:
+                      'Optional. HTML id used by in-page anchors. Use lowercase latin only, e.g. "home", "studio".',
+                  },
+                },
+              ],
+            },
+
+            // ---------- CONTENT (rich text) ----------
+            // Inner field is called `body` (not `content`) to avoid a naming
+            // collision with the parent block slug `content` in Payload v3.
+            // The `editor` option is set explicitly so the Lexical client UI
+            // is guaranteed to be wired up inside the block, even if the
+            // top-level editor inheritance fails for some reason.
+            {
+              slug: 'content',
+              labels: { singular: 'Content block', plural: 'Content blocks' },
+              imageAltText: 'Content',
+              fields: [
+                {
+                  name: 'body',
+                  type: 'richText',
+                  localized: true,
+                  label: 'Body',
+                  editor: lexicalEditor({}),
+                },
+                {
+                  name: 'accentBackground',
+                  type: 'checkbox',
+                  defaultValue: false,
+                  label: 'Accent background',
+                  admin: { description: 'Use slightly darker background to break up long text walls.' },
+                },
+                {
+                  name: 'sectionId',
+                  type: 'text',
+                  label: 'Section ID (anchor)',
+                  admin: { description: 'Optional anchor used by in-page scroll links.' },
+                },
+                {
+                  name: 'typography',
+                  type: 'group',
+                  label: 'Typography',
+                  admin: { description: 'Override the default editorial style for this block.' },
+                  fields: [
+                    {
+                      name: 'family',
+                      type: 'select',
+                      defaultValue: 'default',
+                      label: 'Font family',
+                      options: [
+                        { label: 'Default (Playfair + Inter)', value: 'default' },
+                        { label: 'Modern Gothic',              value: 'modern-gothic' },
+                        { label: 'Minimalist',                 value: 'minimalist' },
+                      ],
+                    },
+                    {
+                      name: 'scale',
+                      type: 'select',
+                      defaultValue: 'base',
+                      label: 'Body size',
+                      options: [
+                        { label: 'Small',  value: 'sm' },
+                        { label: 'Base',   value: 'base' },
+                        { label: 'Large',  value: 'lg' },
+                        { label: 'X-Large', value: 'xl' },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+
+            // ---------- IMAGE FEATURE ----------
+            {
+              slug: 'imageFeature',
+              labels: { singular: 'Image feature', plural: 'Image features' },
+              imageAltText: 'Image feature',
+              fields: [
+                { name: 'image', type: 'upload', relationTo: 'media', required: true, label: 'Image' },
+                { name: 'caption', type: 'text', localized: true, label: 'Caption' },
+                {
+                  name: 'layout',
+                  type: 'select',
+                  defaultValue: 'content-width',
+                  label: 'Layout',
+                  options: [
+                    { label: 'Content width', value: 'content-width' },
+                    { label: 'Full width', value: 'full-width' },
+                  ],
+                },
+                {
+                  name: 'sectionId',
+                  type: 'text',
+                  label: 'Section ID (anchor)',
+                  admin: { description: 'Optional anchor used by in-page scroll links.' },
+                },
+              ],
+            },
+
+            // ---------- PARALLAX SECTION ----------
+            {
+              slug: 'parallax',
+              labels: { singular: 'Parallax section', plural: 'Parallax sections' },
+              imageAltText: 'Parallax',
+              fields: [
+                {
+                  name: 'backgroundImage',
+                  type: 'upload',
+                  relationTo: 'media',
+                  required: true,
+                  label: 'Background image',
+                },
+                { name: 'title', type: 'text', localized: true, label: 'Title' },
+                { name: 'subtitle', type: 'textarea', localized: true, label: 'Subtitle' },
+                {
+                  name: 'overlayIntensity',
+                  type: 'number',
+                  defaultValue: 0.55,
+                  min: 0,
+                  max: 1,
+                  label: 'Overlay intensity (0 - 1)',
+                  admin: {
+                    step: 0.05,
+                    description:
+                      '0 = image at full brightness. 1 = fully black. 0.5 - 0.6 keeps text legible without losing the image.',
+                  },
+                },
+                {
+                  name: 'sectionId',
+                  type: 'text',
+                  label: 'Section ID (anchor)',
+                  admin: {
+                    description:
+                      'Optional. HTML id used by in-page anchors. Use lowercase latin only, e.g. "story", "process".',
+                  },
+                },
+                {
+                  name: 'height',
+                  type: 'select',
+                  defaultValue: 'screen',
+                  label: 'Section height',
+                  options: [
+                    { label: 'Full screen (100vh)', value: 'screen' },
+                    { label: 'Three-quarters (75vh)', value: 'tall' },
+                    { label: 'Half (50vh)', value: 'half' },
+                  ],
+                },
+              ],
+            },
+
+            // ---------- ACCORDION (FAQ) ----------
+            {
+              slug: 'accordion',
+              labels: { singular: 'Accordion (FAQ)', plural: 'Accordions (FAQ)' },
+              imageAltText: 'Accordion',
+              fields: [
+                { name: 'heading', type: 'text', localized: true, label: 'Section heading (optional)' },
+                {
+                  name: 'items',
+                  type: 'array',
+                  required: true,
+                  minRows: 1,
+                  label: 'Q&A items',
+                  fields: [
+                    { name: 'question', type: 'text', required: true, localized: true, label: 'Question' },
+                    { name: 'answer', type: 'textarea', required: true, localized: true, label: 'Answer' },
+                  ],
+                },
+                {
+                  name: 'sectionId',
+                  type: 'text',
+                  label: 'Section ID (anchor)',
+                  admin: { description: 'Optional anchor used by in-page scroll links.' },
+                },
+              ],
+            },
+
+            // ---------- ARTIST GRID ----------
+            {
+              slug: 'artistGrid',
+              labels: { singular: 'Artist grid', plural: 'Artist grids' },
+              imageAltText: 'Artist grid',
+              fields: [
+                { name: 'heading', type: 'text', localized: true, label: 'Section heading (optional)' },
+                {
+                  name: 'featuredOnly',
+                  type: 'checkbox',
+                  defaultValue: true,
+                  label: 'Featured artists only',
+                  admin: { description: 'Untick to show every artist on the studio.' },
+                },
+                {
+                  name: 'sectionId',
+                  type: 'text',
+                  label: 'Section ID (anchor)',
+                  admin: { description: 'Optional anchor used by in-page scroll links.' },
+                },
+              ],
+            },
+
+            // ---------- COLUMNS (multi-column layout) ----------
+            {
+              slug: 'columns',
+              labels: { singular: 'Columns block', plural: 'Columns blocks' },
+              imageAltText: 'Columns',
+              fields: [
+                {
+                  name: 'layout',
+                  type: 'select',
+                  defaultValue: '50_50',
+                  label: 'Column layout',
+                  options: [
+                    { label: 'Two columns · 50 / 50',       value: '50_50' },
+                    { label: 'Two columns · 33 / 66',       value: '33_66' },
+                    { label: 'Two columns · 66 / 33',       value: '66_33' },
+                    { label: 'Three columns · 33 / 33 / 33', value: '33_33_33' },
+                  ],
+                  admin: {
+                    description:
+                      'The number of columns is inferred from the layout (two or three). Add a matching number of items below.',
+                  },
+                },
+                {
+                  name: 'gap',
+                  type: 'select',
+                  defaultValue: 'md',
+                  label: 'Gap between columns',
+                  options: [
+                    { label: 'Tight',  value: 'sm' },
+                    { label: 'Normal', value: 'md' },
+                    { label: 'Wide',   value: 'lg' },
+                  ],
+                },
+                {
+                  name: 'items',
+                  type: 'array',
+                  required: true,
+                  minRows: 2,
+                  maxRows: 3,
+                  label: 'Columns',
+                  admin: { description: 'Order matters — first item is the left/top column.' },
+                  fields: [
+                    {
+                      name: 'body',
+                      type: 'richText',
+                      localized: true,
+                      label: 'Body',
+                      editor: lexicalEditor({}),
+                    },
+                    {
+                      name: 'image',
+                      type: 'upload',
+                      relationTo: 'media',
+                      label: 'Image (optional, replaces body if set)',
+                    },
+                    {
+                      name: 'imageCaption',
+                      type: 'text',
+                      localized: true,
+                      label: 'Image caption',
+                    },
+                  ],
+                },
+                {
+                  name: 'sectionId',
+                  type: 'text',
+                  label: 'Section ID (anchor)',
+                  admin: { description: 'Optional anchor used by in-page scroll links.' },
+                },
+              ],
+            },
+          ],
+        },
         {
           name: 'seo',
           type: 'group',
@@ -512,62 +818,19 @@ export default buildConfig({
 
   globals: [
     {
-      slug: 'studio',
-      label: 'Studio info',
+      slug: 'siteSettings',
+      label: 'Site Settings',
       admin: {
         group: 'Settings' },
       access: { read: () => true, update: isAdmin },
       fields: [
-        { name: 'name', type: 'text', defaultValue: 'Aurora & Ash', label: 'Studio name' },
-        { name: 'tagline', type: 'text', localized: true, defaultValue: 'WE FEEL IT', label: 'Tagline' },
-        { name: 'philosophy', type: 'textarea', localized: true, label: 'Philosophy (legacy)' },
-        {
-          name: 'about',
-          type: 'group',
-          label: 'About section (home page)',
-          admin: {
-            description: 'The "Philosophy" block shown on the home page.',
-          },
-          fields: [
-            {
-              name: 'eyebrow',
-              type: 'text',
-              localized: true,
-              defaultValue: 'The Philosophy',
-              label: 'Eyebrow / small caption above heading',
-            },
-            {
-              name: 'heading',
-              type: 'text',
-              localized: true,
-              defaultValue: 'A CURATED SPACE FOR PERMANENT ART',
-              label: 'Heading',
-            },
-            {
-              name: 'body',
-              type: 'textarea',
-              localized: true,
-              defaultValue:
-                'We accept limited bookings per month to ensure every piece receives absolute focus. Our studio operates as a private gallery where skin meets curated vision.',
-              label: 'Body text',
-            },
-            {
-              name: 'image',
-              type: 'upload',
-              relationTo: 'media',
-              label: 'Section image',
-              admin: { description: 'Optional image shown next to the text.' },
-            },
-          ],
-        },
-        { name: 'address', type: 'textarea', localized: true, label: 'Address' },
         { name: 'phone', type: 'text', label: 'Phone' },
-        { name: 'email', type: 'email', label: 'Email' },
-        { name: 'hours', type: 'textarea', localized: true, label: 'Working hours' },
-        {
-          name: 'social',
+        { name: 'email', type: 'text', label: 'Email' },
+        { name: 'address', type: 'textarea', localized: true, label: 'Address' },
+        { name: 'hours', type: 'text', label: 'Studio Hours', defaultValue: 'Mon-Sun: 12 PM — 8 PM (By Appointment Only)' },
+        { name: 'social',
           type: 'group',
-          label: 'Studio social',
+          label: 'Social links',
           fields: [
             { name: 'instagram', type: 'text', label: 'Instagram' },
             { name: 'tiktok', type: 'text', label: 'TikTok' },
@@ -575,6 +838,7 @@ export default buildConfig({
             { name: 'whatsapp', type: 'text', label: 'WhatsApp' },
           ],
         },
+        { name: 'footerLogo', type: 'upload', relationTo: 'media', label: 'Footer logo' },
         { name: 'heroImage', type: 'upload', relationTo: 'media', label: 'Hero image' },
       ],
     },

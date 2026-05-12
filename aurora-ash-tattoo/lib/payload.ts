@@ -23,5 +23,5 @@ export const SUPPORTED_LOCALES: Locale[] = ['en', 'ru']
 export const DEFAULT_LOCALE: Locale = 'en'
 
 export function isLocale(value: string | null | undefined): value is Locale {
-  return !!value && (SUPPORTED_LOCALES as string[]).includes(value)
+  return value === 'en' || value === 'ru'
 }

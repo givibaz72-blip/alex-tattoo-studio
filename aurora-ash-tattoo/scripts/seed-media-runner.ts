@@ -1,44 +1,72 @@
 /**
- * Media seed - uploads images from public/seed-images and attaches them to:
- *  - studio global (heroImage, about.image)
- *  - each artist (portrait, heroImage)
- *  - each draft work (images[0]) and publishes it
+ * Media seed.
  *
- * For missing files, generates a tasteful SVG placeholder rendered to PNG via Sharp.
+ * Runs in two passes:
+ *
+ *   1. Page-level media (hero, parallax, image-feature) — uploaded into the
+ *      Media collection so blocks in `pages` can reference them by ID.
+ *   2. Artist + work media — attached to the Artists / Works collections.
+ *
+ * Source files come from `public/seed-images/`. Anything missing is generated
+ * on the fly as a tasteful charcoal+gold placeholder via Sharp.
+ *
+ * Returns a `mediaIdsByFilename` map so the page-block seeder can resolve
+ * `imageFile: 'studio_hero.png'` references to real media IDs.
  *
  * Idempotent:
- *  - media is matched by filename in DB; existing records are reused
- *  - existing studio/artist/work fields are NOT overwritten if already set
+ *  - media is matched by filename in DB; existing records are reused.
+ *  - existing artist/work fields are NOT overwritten if already set.
+ *  - `siteSettings.heroImage` is filled only if currently empty.
  */
 
 import fs from 'fs/promises'
 import path from 'path'
 import sharp from 'sharp'
 
+import { DEFAULT_PLACEHOLDERS, ensureSeedPlaceholders } from './generate-placeholders'
+
 const SEED_DIR = path.join(process.cwd(), 'public', 'seed-images')
 
 // ---------------------------------------------------------------------------
-// Studio images
+// Page-level media targets
 // ---------------------------------------------------------------------------
+//
+// Filenames here MUST match the `imageFile` values used in `scripts/seed-blocks.ts`.
+// They are uploaded to the Media collection and their IDs are returned in the
+// `mediaIdsByFilename` map used by the page-block seeder.
+//
+// `assignToSiteSettings` marks the file used as the global hero image — it
+// fills `siteSettings.heroImage` only if currently empty.
 
-const STUDIO_TARGETS = [
-  {
-    file: 'studio_hero.png',
-    field: 'heroImage' as const,
-    alt: 'Aurora & Ash studio interior - West Hollywood',
-    placeholder: { title: 'STUDIO HERO', subtitle: 'Home page background' },
-  },
-  {
-    file: 'studio_philosophy.png',
-    field: 'about.image' as const,
-    alt: 'A quiet corner of the Aurora & Ash studio',
-    placeholder: { title: 'PHILOSOPHY', subtitle: 'About-section image' },
-  },
-] as const
+type PageMediaTarget = {
+  file: string
+  alt: string
+  ratio: 'square' | 'portrait' | 'wide' | 'banner'
+  placeholderTitle: string
+  placeholderSubtitle: string
+  assignToSiteSettings?: 'heroImage' | 'footerLogo'
+}
 
-// We also accept og_image - just upload to media library, no auto-attachment.
-const EXTRA_MEDIA = [
-  { file: 'og_image.png', alt: 'Aurora & Ash - West Hollywood Tattoo Studio' },
+const PAGE_MEDIA_TARGETS: PageMediaTarget[] = [
+  // hero / studio
+  { file: 'studio_hero.png',        alt: 'Aurora & Ash studio interior — placeholder', ratio: 'wide',     placeholderTitle: 'AURORA & ASH', placeholderSubtitle: 'Home hero · placeholder', assignToSiteSettings: 'heroImage' },
+  { file: 'studio_philosophy.png',  alt: 'Studio interior, soft daylight — placeholder', ratio: 'portrait', placeholderTitle: 'PHILOSOPHY', placeholderSubtitle: 'About hero · placeholder' },
+
+  // parallax
+  { file: 'parallax_studio.jpg',    alt: 'Studio interior — parallax placeholder',    ratio: 'wide', placeholderTitle: 'A PRIVATE GALLERY', placeholderSubtitle: 'Studio · placeholder' },
+  { file: 'parallax_craft.jpg',     alt: 'Tools and craft — parallax placeholder',    ratio: 'wide', placeholderTitle: 'CRAFT · LINEAGE',   placeholderSubtitle: 'Process · placeholder' },
+  { file: 'parallax_cta.jpg',       alt: 'CTA backdrop — parallax placeholder',       ratio: 'wide', placeholderTitle: 'BEGIN A PROJECT',   placeholderSubtitle: 'CTA · placeholder' },
+  { file: 'parallax_aftercare.jpg', alt: 'Aftercare backdrop — parallax placeholder', ratio: 'wide', placeholderTitle: 'AFTERCARE',         placeholderSubtitle: 'Healing · placeholder' },
+  { file: 'parallax_contact.jpg',   alt: 'West Hollywood — parallax placeholder',     ratio: 'wide', placeholderTitle: 'WEST HOLLYWOOD',    placeholderSubtitle: 'Visit · placeholder' },
+
+  // image features
+  { file: 'feature_room.jpg',       alt: 'Studio floor — image feature placeholder',  ratio: 'wide', placeholderTitle: 'STUDIO FLOOR',      placeholderSubtitle: 'Image feature · placeholder' },
+  { file: 'feature_work.jpg',       alt: 'Selected work — image feature placeholder', ratio: 'wide', placeholderTitle: 'SELECTED WORK',     placeholderSubtitle: 'Image feature · placeholder' },
+  { file: 'feature_aftercare.jpg',  alt: 'Healed at six months — placeholder',        ratio: 'wide', placeholderTitle: 'HEALED AT 6 MONTHS', placeholderSubtitle: 'Image feature · placeholder' },
+  { file: 'feature_map.jpg',        alt: '8282 Santa Monica Blvd — placeholder',      ratio: 'wide', placeholderTitle: '8282 SANTA MONICA',  placeholderSubtitle: 'Map · placeholder' },
+
+  // share image
+  { file: 'og_image.png',           alt: 'Aurora & Ash — Open Graph share',           ratio: 'banner', placeholderTitle: 'AURORA & ASH', placeholderSubtitle: 'OG · placeholder' },
 ]
 
 // ---------------------------------------------------------------------------
@@ -52,20 +80,20 @@ const ARTIST_IMAGES: Array<{
   alt: string
   placeholderTitle: string
 }> = [
-  { artistSlug: 'marcus-reyes',  file: 'marcus_portrait.jpg', field: 'portrait',  alt: 'Marcus "Wolfheart" Reyes - portrait', placeholderTitle: 'MARCUS REYES' },
-  { artistSlug: 'marcus-reyes',  file: 'marcus_cover.png',    field: 'heroImage', alt: 'Marcus Reyes - cover',                placeholderTitle: 'MARCUS — COVER' },
-  { artistSlug: 'elena-voss',    file: 'elena_portrait.jpg',  field: 'portrait',  alt: 'Elena Voss - portrait',               placeholderTitle: 'ELENA VOSS' },
-  { artistSlug: 'elena-voss',    file: 'elena_cover.png',     field: 'heroImage', alt: 'Elena Voss - cover',                  placeholderTitle: 'ELENA — COVER' },
-  { artistSlug: 'kai-nakamura',  file: 'kai_portrait.jpg',    field: 'portrait',  alt: 'Kai Nakamura - portrait',             placeholderTitle: 'KAI NAKAMURA' },
-  { artistSlug: 'kai-nakamura',  file: 'kai_cover.png',       field: 'heroImage', alt: 'Kai Nakamura - cover',                placeholderTitle: 'KAI — COVER' },
-  { artistSlug: 'riley-obrien',  file: 'riley_portrait.jpg',  field: 'portrait',  alt: "Riley O'Brien - portrait",            placeholderTitle: "RILEY O'BRIEN" },
-  { artistSlug: 'riley-obrien',  file: 'riley_cover.png',     field: 'heroImage', alt: "Riley O'Brien - cover",               placeholderTitle: 'RILEY — COVER' },
-  { artistSlug: 'sofia-mendez',  file: 'sofia_portrait.jpg',  field: 'portrait',  alt: 'Sofia Mendez - portrait',             placeholderTitle: 'SOFIA MENDEZ' },
-  { artistSlug: 'sofia-mendez',  file: 'sofia_cover.png',     field: 'heroImage', alt: 'Sofia Mendez - cover',                placeholderTitle: 'SOFIA — COVER' },
+  { artistSlug: 'marcus-reyes',  file: 'marcus_portrait.jpg', field: 'portrait',  alt: 'Marcus "Wolfheart" Reyes — portrait', placeholderTitle: 'MARCUS REYES' },
+  { artistSlug: 'marcus-reyes',  file: 'marcus_cover.png',    field: 'heroImage', alt: 'Marcus Reyes — cover',                placeholderTitle: 'MARCUS · COVER' },
+  { artistSlug: 'elena-voss',    file: 'elena_portrait.jpg',  field: 'portrait',  alt: 'Elena Voss — portrait',               placeholderTitle: 'ELENA VOSS' },
+  { artistSlug: 'elena-voss',    file: 'elena_cover.png',     field: 'heroImage', alt: 'Elena Voss — cover',                  placeholderTitle: 'ELENA · COVER' },
+  { artistSlug: 'kai-nakamura',  file: 'kai_portrait.jpg',    field: 'portrait',  alt: 'Kai Nakamura — portrait',             placeholderTitle: 'KAI NAKAMURA' },
+  { artistSlug: 'kai-nakamura',  file: 'kai_cover.png',       field: 'heroImage', alt: 'Kai Nakamura — cover',                placeholderTitle: 'KAI · COVER' },
+  { artistSlug: 'riley-obrien',  file: 'riley_portrait.jpg',  field: 'portrait',  alt: "Riley O'Brien — portrait",            placeholderTitle: "RILEY O'BRIEN" },
+  { artistSlug: 'riley-obrien',  file: 'riley_cover.png',     field: 'heroImage', alt: "Riley O'Brien — cover",               placeholderTitle: 'RILEY · COVER' },
+  { artistSlug: 'sofia-mendez',  file: 'sofia_portrait.jpg',  field: 'portrait',  alt: 'Sofia Mendez — portrait',             placeholderTitle: 'SOFIA MENDEZ' },
+  { artistSlug: 'sofia-mendez',  file: 'sofia_cover.png',     field: 'heroImage', alt: 'Sofia Mendez — cover',                placeholderTitle: 'SOFIA · COVER' },
 ]
 
 // ---------------------------------------------------------------------------
-// Work images - each work gets ONE image (real or placeholder)
+// Work images — each work gets ONE image (real or placeholder)
 // ---------------------------------------------------------------------------
 
 const WORK_IMAGES: Array<{
@@ -112,7 +140,8 @@ const WORK_IMAGES: Array<{
 ]
 
 // ---------------------------------------------------------------------------
-// Placeholder generator
+// Inline placeholder generator (used for artist/work files that aren't in
+// generate-placeholders.ts's DEFAULT list).
 // ---------------------------------------------------------------------------
 
 function escapeXml(s: string) {
@@ -124,68 +153,78 @@ function escapeXml(s: string) {
     .replace(/'/g, '&apos;')
 }
 
-function placeholderSvg(title: string, subtitle: string, opts?: { ratio?: 'square' | 'portrait' | 'wide' }) {
-  const ratio = opts?.ratio ?? 'square'
+function inlinePlaceholderSvg(
+  title: string,
+  subtitle: string,
+  ratio: 'square' | 'portrait' | 'wide' | 'banner',
+) {
   const dims =
     ratio === 'wide'     ? { w: 2000, h: 1125 } :
     ratio === 'portrait' ? { w: 1200, h: 1500 } :
+    ratio === 'banner'   ? { w: 1200, h: 630 } :
                            { w: 1500, h: 1500 }
 
   const cx = dims.w / 2
   const cy = dims.h / 2
+  const titleSize = ratio === 'banner' ? 64 : Math.round(dims.w * 0.04)
+  const subSize = ratio === 'banner' ? 20 : Math.round(dims.w * 0.013)
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${dims.w} ${dims.h}" width="${dims.w}" height="${dims.h}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#161616"/>
-      <stop offset="1" stop-color="#0c0c0c"/>
+      <stop offset="0" stop-color="#181818"/>
+      <stop offset="0.5" stop-color="#1a1410"/>
+      <stop offset="1" stop-color="#0a0a0a"/>
     </linearGradient>
-    <pattern id="grain" patternUnits="userSpaceOnUse" width="3" height="3">
-      <circle cx="1.5" cy="1.5" r="0.4" fill="#ffffff" opacity="0.025"/>
-    </pattern>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="65%">
+      <stop offset="0" stop-color="#000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.55"/>
+    </radialGradient>
   </defs>
   <rect width="${dims.w}" height="${dims.h}" fill="url(#bg)"/>
-  <rect width="${dims.w}" height="${dims.h}" fill="url(#grain)"/>
-  <rect x="60" y="60" width="${dims.w - 120}" height="${dims.h - 120}" fill="none" stroke="#2a2a2a" stroke-width="1"/>
+  <rect width="${dims.w}" height="${dims.h}" fill="url(#vignette)"/>
 
-  <!-- corner ticks -->
-  <g stroke="#D4AF37" stroke-width="1.5" fill="none">
-    <path d="M 80 140 L 80 80 L 140 80"/>
-    <path d="M ${dims.w - 140} 80 L ${dims.w - 80} 80 L ${dims.w - 80} 140"/>
-    <path d="M 80 ${dims.h - 140} L 80 ${dims.h - 80} L 140 ${dims.h - 80}"/>
-    <path d="M ${dims.w - 140} ${dims.h - 80} L ${dims.w - 80} ${dims.h - 80} L ${dims.w - 80} ${dims.h - 140}"/>
+  <g stroke="#D4AF37" stroke-width="1.4" fill="none" opacity="0.6">
+    <path d="M 60 110 L 60 60 L 110 60"/>
+    <path d="M ${dims.w - 110} 60 L ${dims.w - 60} 60 L ${dims.w - 60} 110"/>
+    <path d="M 60 ${dims.h - 110} L 60 ${dims.h - 60} L 110 ${dims.h - 60}"/>
+    <path d="M ${dims.w - 110} ${dims.h - 60} L ${dims.w - 60} ${dims.h - 60} L ${dims.w - 60} ${dims.h - 110}"/>
   </g>
 
-  <!-- + center mark -->
-  <g stroke="#D4AF37" stroke-width="2" opacity="0.55">
-    <line x1="${cx}" y1="${cy - 60}" x2="${cx}" y2="${cy + 60}"/>
-    <line x1="${cx - 60}" y1="${cy}" x2="${cx + 60}" y2="${cy}"/>
-  </g>
+  <line x1="${cx - 90}" y1="${cy + 20}" x2="${cx + 90}" y2="${cy + 20}" stroke="#D4AF37" stroke-width="1" opacity="0.85"/>
 
-  <!-- title -->
-  <text x="${cx}" y="${cy + 200}" text-anchor="middle" fill="#D4AF37"
-        font-family="Georgia, 'Times New Roman', serif" font-size="56" font-style="italic">
+  <text x="${cx}" y="${cy - 4}" text-anchor="middle" fill="#D4AF37"
+        font-family="Georgia, 'Playfair Display', 'Times New Roman', serif"
+        font-size="${titleSize}" font-style="italic" letter-spacing="2">
     ${escapeXml(title)}
   </text>
 
-  <!-- subtitle -->
-  <text x="${cx}" y="${cy + 250}" text-anchor="middle" fill="#9a9a9a"
-        font-family="Arial, Helvetica, sans-serif" font-size="20" letter-spacing="6">
+  <text x="${cx}" y="${cy + 60}" text-anchor="middle" fill="#9a8b5d"
+        font-family="Inter, Arial, Helvetica, sans-serif"
+        font-size="${subSize}" letter-spacing="6">
     ${escapeXml(subtitle.toUpperCase())}
   </text>
 
-  <!-- bottom watermark -->
-  <text x="${cx}" y="${dims.h - 110}" text-anchor="middle" fill="#5a5a5a"
-        font-family="Arial, Helvetica, sans-serif" font-size="14" letter-spacing="5">
+  <text x="${cx}" y="${dims.h - 90}" text-anchor="middle" fill="#5a5040"
+        font-family="Inter, Arial, Helvetica, sans-serif"
+        font-size="14" letter-spacing="6">
     PLACEHOLDER · REPLACE WITH REAL PHOTO
   </text>
 </svg>`
 }
 
-async function generatePlaceholderPng(title: string, subtitle: string, ratio: 'square' | 'portrait' | 'wide' = 'square') {
-  const svg = placeholderSvg(title, subtitle, { ratio })
-  const png = await sharp(Buffer.from(svg)).png({ quality: 90 }).toBuffer()
-  return png
+async function generateInlinePlaceholder(
+  title: string,
+  subtitle: string,
+  ratio: 'square' | 'portrait' | 'wide' | 'banner',
+  format: 'png' | 'jpg' = 'png',
+) {
+  const svg = inlinePlaceholderSvg(title, subtitle, ratio)
+  const pipeline = sharp(Buffer.from(svg))
+  if (format === 'png') {
+    return pipeline.png({ quality: 92, compressionLevel: 9 }).toBuffer()
+  }
+  return pipeline.flatten({ background: '#0a0a0a' }).jpeg({ quality: 86, mozjpeg: true }).toBuffer()
 }
 
 // ---------------------------------------------------------------------------
@@ -202,17 +241,18 @@ function mimeFromName(filename: string) {
 
 async function loadImageOrPlaceholder(
   filename: string,
-  placeholder: { title: string; subtitle: string; ratio?: 'square' | 'portrait' | 'wide' },
+  placeholder: { title: string; subtitle: string; ratio: 'square' | 'portrait' | 'wide' | 'banner' },
 ): Promise<{ buffer: Buffer; mimetype: string; name: string; isPlaceholder: boolean }> {
   const fullPath = path.join(SEED_DIR, filename)
   try {
     const buffer = await fs.readFile(fullPath)
     return { buffer, mimetype: mimeFromName(filename), name: filename, isPlaceholder: false }
   } catch {
-    const buffer = await generatePlaceholderPng(placeholder.title, placeholder.subtitle, placeholder.ratio ?? 'square')
-    // Save as .png placeholder so we can spot them later
-    const placeholderName = filename.replace(/\.\w+$/, '.png')
-    return { buffer, mimetype: 'image/png', name: placeholderName, isPlaceholder: true }
+    const ext = filename.split('.').pop()?.toLowerCase()
+    const format: 'png' | 'jpg' = ext === 'jpg' || ext === 'jpeg' ? 'jpg' : 'png'
+    const buffer = await generateInlinePlaceholder(placeholder.title, placeholder.subtitle, placeholder.ratio, format)
+    // Keep the original filename so look-ups by name still resolve.
+    return { buffer, mimetype: mimeFromName(filename), name: filename, isPlaceholder: true }
   }
 }
 
@@ -224,22 +264,18 @@ async function uploadOrFindMedia(
   payload: any,
   filename: string,
   alt: string,
-  placeholder: { title: string; subtitle: string; ratio?: 'square' | 'portrait' | 'wide' },
+  placeholder: { title: string; subtitle: string; ratio: 'square' | 'portrait' | 'wide' | 'banner' },
 ): Promise<{ id: any; isPlaceholder: boolean; finalName: string }> {
-  // First, check if media with this filename already exists.
-  const candidates = [filename, filename.replace(/\.\w+$/, '.png')]
-  for (const candidate of candidates) {
-    const existing = await payload.find({
-      collection: 'media',
-      where: { filename: { equals: candidate } },
-      limit: 1,
-    })
-    if (existing.docs.length > 0) {
-      return { id: existing.docs[0].id, isPlaceholder: candidate.includes('.png') && !filename.endsWith('.png'), finalName: candidate }
-    }
+  // Check whether media with this filename already exists.
+  const existing = await payload.find({
+    collection: 'media',
+    where: { filename: { equals: filename } },
+    limit: 1,
+  })
+  if (existing.docs.length > 0) {
+    return { id: existing.docs[0].id, isPlaceholder: false, finalName: filename }
   }
 
-  // Otherwise upload (real or placeholder).
   const { buffer, mimetype, name, isPlaceholder } = await loadImageOrPlaceholder(filename, placeholder)
   const doc = await payload.create({
     collection: 'media',
@@ -253,68 +289,73 @@ async function uploadOrFindMedia(
 // Main
 // ---------------------------------------------------------------------------
 
-export async function runMediaSeed(payload: any) {
-  const result = {
-    studio: [] as string[],
-    artists: [] as string[],
-    works: [] as string[],
-    extras: [] as string[],
-    placeholders: [] as string[],
-    skipped: [] as string[],
+export type MediaSeedResult = {
+  /** Map filename → media doc id, used by the page-block seeder to resolve
+   *  `imageFile: 'studio_hero.png'` to a real ID. */
+  mediaIdsByFilename: Record<string, string | number>
+  generatedPlaceholders: { created: string[]; kept: string[] }
+  uploaded: string[]
+  pageMedia: string[]
+  artists: string[]
+  works: string[]
+  placeholders: string[]
+  skipped: string[]
+}
+
+export async function runMediaSeed(payload: any): Promise<MediaSeedResult> {
+  const result: MediaSeedResult = {
+    mediaIdsByFilename: {},
+    generatedPlaceholders: { created: [], kept: [] },
+    uploaded: [],
+    pageMedia: [],
+    artists: [],
+    works: [],
+    placeholders: [],
+    skipped: [],
   }
 
-  // ---- STUDIO ----
-  const studio = (await payload.findGlobal({ slug: 'studio' })) as any
-  const studioPatch: Record<string, any> = {}
-  let studioChanged = false
+  // 0) Make sure all default placeholder files exist on disk.
+  result.generatedPlaceholders = await ensureSeedPlaceholders()
 
-  for (const t of STUDIO_TARGETS) {
-    const ratio = t.field === 'heroImage' ? 'wide' : 'portrait'
+  // ----------------- 1) PAGE-LEVEL MEDIA (hero / parallax / feature / og) -----------------
+  for (const t of PAGE_MEDIA_TARGETS) {
     const upload = await uploadOrFindMedia(payload, t.file, t.alt, {
-      title: t.placeholder.title,
-      subtitle: t.placeholder.subtitle,
-      ratio,
+      title: t.placeholderTitle,
+      subtitle: t.placeholderSubtitle,
+      ratio: t.ratio,
     })
+    result.mediaIdsByFilename[t.file] = upload.id
+    result.uploaded.push(upload.finalName)
     if (upload.isPlaceholder) result.placeholders.push(upload.finalName)
+    result.pageMedia.push(`${t.file} → ${upload.id}${upload.isPlaceholder ? ' [PLACEHOLDER]' : ''}`)
 
-    // Set only if currently empty.
-    if (t.field === 'heroImage') {
-      if (!studio?.heroImage) {
-        studioPatch.heroImage = upload.id
-        studioChanged = true
-        result.studio.push('heroImage <- ' + upload.finalName)
-      } else {
-        result.skipped.push('studio.heroImage already set')
-      }
-    } else if (t.field === 'about.image') {
-      const currentAboutImg = studio?.about?.image
-      if (!currentAboutImg) {
-        studioPatch.about = { ...(studio?.about ?? {}), image: upload.id }
-        studioChanged = true
-        result.studio.push('about.image <- ' + upload.finalName)
-      } else {
-        result.skipped.push('studio.about.image already set')
+    // Optional binding to siteSettings global.
+    if (t.assignToSiteSettings) {
+      try {
+        const settings = (await payload.findGlobal({ slug: 'siteSettings' })) as any
+        const currentValue = settings?.[t.assignToSiteSettings]
+        if (!currentValue) {
+          await payload.updateGlobal({
+            slug: 'siteSettings',
+            data: { [t.assignToSiteSettings]: upload.id },
+            locale: 'en',
+          })
+          result.pageMedia.push(`siteSettings.${t.assignToSiteSettings} ← ${t.file}`)
+        } else {
+          result.skipped.push(`siteSettings.${t.assignToSiteSettings} already set`)
+        }
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err))
+        console.error('[seed-media] siteSettings update failed:', {
+          field: t.assignToSiteSettings,
+          message: error.message,
+          stack: error.stack,
+        })
       }
     }
   }
 
-  if (studioChanged) {
-    await payload.updateGlobal({ slug: 'studio', data: studioPatch, locale: 'en' })
-  }
-
-  // ---- EXTRAS ----
-  for (const e of EXTRA_MEDIA) {
-    const upload = await uploadOrFindMedia(payload, e.file, e.alt, {
-      title: 'OG IMAGE',
-      subtitle: 'Open Graph share preview',
-      ratio: 'wide',
-    })
-    if (upload.isPlaceholder) result.placeholders.push(upload.finalName)
-    result.extras.push(e.file)
-  }
-
-  // ---- ARTISTS ----
-  // Fetch each artist by slug (incl. drafts), update missing image fields.
+  // ----------------- 2) ARTIST IMAGES -----------------
   const artistCache: Record<string, any> = {}
   async function getArtist(slug: string) {
     if (artistCache[slug]) return artistCache[slug]
@@ -328,17 +369,18 @@ export async function runMediaSeed(payload: any) {
     return artistCache[slug]
   }
 
-  // Group artist updates so we make one update call per artist.
   const artistUpdates: Record<string, Record<string, any>> = {}
 
   for (const a of ARTIST_IMAGES) {
-    const ratio = a.field === 'heroImage' ? 'wide' : 'portrait'
+    const ratio: 'square' | 'portrait' | 'wide' = a.field === 'heroImage' ? 'wide' : 'portrait'
     const upload = await uploadOrFindMedia(payload, a.file, a.alt, {
       title: a.placeholderTitle,
       subtitle: a.field === 'portrait' ? 'Artist portrait' : 'Artist cover',
       ratio,
     })
     if (upload.isPlaceholder) result.placeholders.push(upload.finalName)
+    result.mediaIdsByFilename[a.file] = upload.id
+    result.uploaded.push(upload.finalName)
 
     const artist = await getArtist(a.artistSlug)
     if (!artist) {
@@ -346,7 +388,6 @@ export async function runMediaSeed(payload: any) {
       continue
     }
 
-    // Skip if already set (don't overwrite).
     const currentVal = artist[a.field]
     if (currentVal) {
       result.skipped.push(`${a.artistSlug}.${a.field} already set`)
@@ -355,23 +396,28 @@ export async function runMediaSeed(payload: any) {
 
     artistUpdates[a.artistSlug] = artistUpdates[a.artistSlug] ?? {}
     artistUpdates[a.artistSlug][a.field] = upload.id
-    result.artists.push(`${a.artistSlug}.${a.field} <- ${upload.finalName}`)
+    result.artists.push(`${a.artistSlug}.${a.field} ← ${upload.finalName}`)
   }
 
   for (const [slug, patch] of Object.entries(artistUpdates)) {
     const artist = await getArtist(slug)
     if (!artist) continue
-    await payload.update({
-      collection: 'artists',
-      id: artist.id,
-      data: { ...patch, _status: 'published' },
-      locale: 'en',
-      draft: false,
-    })
+    try {
+      await payload.update({
+        collection: 'artists',
+        id: artist.id,
+        data: { ...patch, _status: 'published' },
+        locale: 'en',
+        draft: false,
+      })
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err))
+      console.error('[seed-media] artist update failed:', { slug, message: error.message })
+      result.skipped.push(`${slug} update failed: ${error.message}`)
+    }
   }
 
-  // ---- WORKS ----
-  // Find draft works by (artistSlug, title), attach image, publish.
+  // ----------------- 3) WORK IMAGES -----------------
   for (const w of WORK_IMAGES) {
     const artist = await getArtist(w.artistSlug)
     if (!artist) {
@@ -396,7 +442,6 @@ export async function runMediaSeed(payload: any) {
       continue
     }
 
-    // Skip if already has at least one image AND is published.
     const hasImages = Array.isArray(work.images) && work.images.length > 0 && work.images[0]?.image
     const isPublished = (work as any)._status === 'published'
     if (hasImages && isPublished) {
@@ -404,29 +449,40 @@ export async function runMediaSeed(payload: any) {
       continue
     }
 
-    const upload = await uploadOrFindMedia(payload, w.file, `${w.workTitle} - by ${w.artistDisplay}`, {
+    const upload = await uploadOrFindMedia(payload, w.file, `${w.workTitle} — by ${w.artistDisplay}`, {
       title: w.workTitle,
       subtitle: w.artistDisplay,
       ratio: 'square',
     })
     if (upload.isPlaceholder) result.placeholders.push(upload.finalName)
+    result.mediaIdsByFilename[w.file] = upload.id
 
     const newImages = hasImages
       ? work.images
       : [{ image: upload.id, caption: '' }]
 
-    await payload.update({
-      collection: 'works',
-      id: work.id,
-      data: {
-        images: newImages,
-        _status: 'published',
-      },
-      locale: 'en',
-      draft: false,
-    })
-    result.works.push(`${w.workTitle} <- ${upload.finalName}${upload.isPlaceholder ? ' [PLACEHOLDER]' : ''}`)
+    try {
+      await payload.update({
+        collection: 'works',
+        id: work.id,
+        data: {
+          images: newImages,
+          _status: 'published',
+        },
+        locale: 'en',
+        draft: false,
+      })
+      result.works.push(`${w.workTitle} ← ${upload.finalName}${upload.isPlaceholder ? ' [PLACEHOLDER]' : ''}`)
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err))
+      console.error('[seed-media] work update failed:', { workTitle: w.workTitle, message: error.message })
+      result.skipped.push(`${w.workTitle} update failed: ${error.message}`)
+    }
   }
+
+  // Reference unused export to keep the placeholder spec list reachable for
+  // downstream tooling.
+  void DEFAULT_PLACEHOLDERS
 
   return result
 }

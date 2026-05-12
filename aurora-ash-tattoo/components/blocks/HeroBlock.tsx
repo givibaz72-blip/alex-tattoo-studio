@@ -1,0 +1,106 @@
+'use client'
+
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
+import Link from 'next/link'
+
+import type { MediaDoc } from '../MediaImage'
+import type { HeroBlockData } from './types'
+
+interface Props {
+  block: HeroBlockData
+}
+
+/**
+ * Hero block with parallax background.
+ *
+ * Uses "Clip-Path Window" technique:
+ * - The image is fixed to the viewport (locked in place)
+ * - A subtle y transform creates gentle "lag" as you scroll
+ * - The parent section's clip-path creates the viewing window
+ *
+ * Respects `prefers-reduced-motion` - in that case the image stays static.
+ */
+export default function HeroBlock({ block }: Props) {
+  const reduceMotion = useReducedMotion()
+
+  const { scrollYProgress } = useScroll({
+    offset: ['start end', 'end start'],
+  })
+
+  // Counter-scroll: image moves UP 15vh while we scroll through the section
+  const y = useTransform(scrollYProgress, [0, 1], ['15vh', '-15vh'])
+
+  const media = block.backgroundImage
+  const imageUrl =
+    media && typeof media === 'object'
+      ? ((media as MediaDoc).sizes?.hero?.url ?? (media as MediaDoc).url)
+      : null
+
+  return (
+    <section
+      // The "window" - clip-path creates the viewing frame
+      className="relative w-full min-h-screen [clip-path:inset(0)] bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center overflow-hidden"
+    >
+      {imageUrl && (
+        // Fixed canvas with parallax - h-[130vh] accommodates 30vh movement
+        // will-change + translateZ(0) for 60fps on mobile
+        <motion.div
+          aria-hidden="true"
+          style={reduceMotion ? {} : { y, willChange: 'transform', transform: 'translateZ(0)' }}
+          className="fixed -top-[15vh] left-0 w-full h-[130vh] -z-10 pointer-events-none"
+        >
+          <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+        </motion.div>
+      )}
+
+      {/* Dark wash overlay */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(10,10,10,0.5)_100%)]"
+      />
+
+      {/* Content centered with z-index: 10 for proper layering */}
+      <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto px-6 text-center">
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight leading-[1.05] text-[#D4AF37]"
+        >
+          AURORA & ASH
+        </motion.h1>
+
+        {block.subtitle && (
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-6 font-serif italic text-lg sm:text-xl md:text-2xl text-[#D4AF37]/80 max-w-2xl"
+          >
+            {block.subtitle}
+          </motion.p>
+        )}
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-12 flex flex-col sm:flex-row gap-5 sm:gap-8"
+        >
+          <Link
+            href="/inquiry"
+            className="inline-flex items-center justify-center min-h-11 px-8 py-3 border border-[#D4AF37] bg-[#D4AF37] text-[#0a0a0a] font-sans text-sm uppercase tracking-[0.18em] transition-all duration-300 hover:bg-transparent hover:text-[#D4AF37] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 focus:ring-offset-[#0a0a0a]"
+          >
+            Make an appointment
+          </Link>
+          <Link
+            href="/#team"
+            className="inline-flex items-center justify-center min-h-11 px-8 py-3 border border-[#D4AF37]/55 text-[#D4AF37] font-sans text-sm uppercase tracking-[0.18em] transition-all duration-300 hover:border-[#D4AF37] hover:bg-[#D4AF37]/10 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 focus:ring-offset-[#0a0a0a]"
+          >
+            Meet the artists
+          </Link>
+        </motion.div>
+      </div>
+    </section>
+  )
+}

@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { motion } from 'framer-motion'
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -23,14 +23,14 @@ const COPY = {
   en: {
     eyebrow: 'Fine line · Blackwork · Ornamental',
     tagline: 'Fine art for the body.',
-    primaryCta: 'Book a consultation',
+    primaryCta: 'Make an appointment',
     secondaryCta: 'Meet the artists',
     badge: 'Est. 2026 · By appointment · West Hollywood',
   },
   ru: {
     eyebrow: 'Fine line · Blackwork · Орнамент',
     tagline: 'Тонкое искусство для тела.',
-    primaryCta: 'Записаться на консультацию',
+    primaryCta: 'Записаться на сеанс',
     secondaryCta: 'Посмотреть артистов',
     badge: 'С 2026 · Только по записи · West Hollywood',
   },
@@ -40,6 +40,9 @@ const Hero = ({ heroImage, locale = 'en' }: HeroProps) => {
   const t = COPY[locale]
   const inquiryHref = locale === 'en' ? '/inquiry' : '/inquiry?locale=ru'
   const teamHref = locale === 'en' ? '/#team' : '/?locale=ru#team'
+  // (Hero.tsx is a legacy component — the homepage now renders CMS blocks
+  // via BlockRenderer + HeroBlock. Kept for backwards-compat with /[slug]
+  // pages that opt in to the static hero.)
 
   const bgUrl =
     heroImage?.sizes?.hero?.url ||
@@ -47,10 +50,18 @@ const Hero = ({ heroImage, locale = 'en' }: HeroProps) => {
     heroImage?.url ||
     null
 
+  const reduceMotion = useReducedMotion()
+  const { scrollYProgress } = useScroll({ offset: ['start end', 'end start'] })
+  const y = useTransform(scrollYProgress, [0, 1], ['0vh', '-10vh'])
+
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center bg-[#121212] text-[#D4AF37] px-6 text-center overflow-hidden pt-[72px] pb-32">
+    <section className="relative w-full min-h-screen [clip-path:inset(0)] bg-[#121212] text-[#D4AF37] flex items-center justify-center overflow-hidden">
       {bgUrl ? (
-        <>
+        <motion.div
+          aria-hidden="true"
+          style={reduceMotion ? {} : { y, willChange: 'transform', transform: 'translateZ(0)' }}
+          className="fixed -top-[10vh] left-0 w-full h-[120vh] -z-10 pointer-events-none"
+        >
           <Image
             src={bgUrl}
             alt={heroImage?.alt ?? ''}
@@ -61,10 +72,10 @@ const Hero = ({ heroImage, locale = 'en' }: HeroProps) => {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#121212]/30 via-[#121212]/55 to-[#121212]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(18,18,18,0.4)_100%)]" />
-        </>
+        </motion.div>
       ) : null}
 
-      <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto">
+      <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto px-6">
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -100,11 +111,11 @@ const Hero = ({ heroImage, locale = 'en' }: HeroProps) => {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.7 }}
-          className="flex flex-col sm:flex-row gap-4 sm:gap-5 w-full sm:w-auto"
+          className="flex flex-col sm:flex-row gap-5 sm:gap-8 w-full sm:w-auto"
         >
           <Link
             href={inquiryHref}
-            className="label-line bg-[#D4AF37] text-[#121212] border border-[#D4AF37] px-8 py-4 hover:bg-transparent hover:text-[#D4AF37] transition-colors text-center"
+            className="label-line bg-[#D4AF37] text-black border border-[#D4AF37] px-8 py-4 hover:bg-transparent hover:text-[#D4AF37] transition-colors text-center"
           >
             {t.primaryCta}
           </Link>
