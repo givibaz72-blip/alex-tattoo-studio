@@ -171,11 +171,23 @@ export default function InquiryForm({ artists, studioEmail }: InquiryFormProps) 
               })}
               aria-invalid={Boolean(errors.artistId)}
               aria-describedby={errors.artistId ? 'err-artist' : undefined}
+              // `colorScheme: 'dark'` tells the browser to render the native
+              // dropdown popup with its dark UI, so the unstyled <option>
+              // background no longer defaults to white. The explicit style
+              // on each <option> covers Chromium/Firefox where the popup
+              // does not inherit from the styled <select>.
+              style={{ colorScheme: 'dark' }}
               className={`${INPUT_BASE} ${errors.artistId ? INPUT_ERROR : ''} cursor-pointer appearance-none`}
             >
-              <option value="">Select an artist…</option>
+              <option value="" style={{ backgroundColor: '#0a0a0a', color: '#8a7b45' }}>
+                Select an artist…
+              </option>
               {artists.map((a) => (
-                <option key={a.id} value={a.id}>
+                <option
+                  key={a.id}
+                  value={a.id}
+                  style={{ backgroundColor: '#0a0a0a', color: '#D4AF37' }}
+                >
                   {a.name}
                   {a.style ? ` — ${a.style}` : ''}
                 </option>
