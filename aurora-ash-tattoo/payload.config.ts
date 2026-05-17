@@ -740,7 +740,7 @@ export default buildConfig({
       },
       access: {
         create: () => true,
-        read: isAdmin,
+        read: isAdminOrOwnerOfWork,
         update: isAdmin,
         delete: isAdmin,
       },
