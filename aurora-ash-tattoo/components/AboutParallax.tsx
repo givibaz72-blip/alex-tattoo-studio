@@ -44,13 +44,13 @@ export default function AboutParallax({ heading, body, backgroundImage, mobileIm
   return (
     <section
       id="about"
-      className="relative w-full min-h-screen [clip-path:inset(0)] bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center scroll-mt-[72px]"
+      className="relative z-10 w-full min-h-screen [clip-path:inset(0)] bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center scroll-mt-[72px]"
     >
       {(desktopUrl || mobileUrl) && (
         <motion.div
           aria-hidden="true"
           style={reduceMotion ? {} : { y, willChange: 'transform', transform: 'translateZ(0)' }}
-          className={`fixed ${canvasOffset} left-0 w-full ${canvasHeight} -z-10 pointer-events-none`}
+          className={`fixed ${canvasOffset} left-0 w-full ${canvasHeight} z-0 pointer-events-none`}
         >
           {desktopUrl && (
             <img
@@ -75,15 +75,15 @@ export default function AboutParallax({ heading, body, backgroundImage, mobileIm
 
       <div
         aria-hidden="true"
-        className="absolute inset-0"
+        className="absolute inset-0 z-10"
         style={{ backgroundColor: 'rgba(10,10,10,0.55)' }}
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(10,10,10,0.5)_100%)]"
+        className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(10,10,10,0.5)_100%)]"
       />
 
-      <div className="relative z-10 px-6 md:px-10 max-w-4xl mx-auto text-center">
+      <div className="relative z-30 px-6 md:px-10 max-w-4xl mx-auto text-center">
         <motion.h2
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}

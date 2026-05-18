@@ -68,13 +68,13 @@ export default function ParallaxSection({ block }: Props) {
   return (
     <section
       id={sectionId}
-      className={`relative w-full ${heightClass} [clip-path:inset(0)] bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center scroll-mt-[72px]`}
+      className={`relative z-10 w-full ${heightClass} [clip-path:inset(0)] bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center scroll-mt-[72px]`}
     >
       {(desktopUrl || mobileUrl) && (
         <motion.div
           aria-hidden="true"
           style={reduceMotion ? {} : { y, willChange: 'transform', transform: 'translateZ(0)' }}
-          className={`fixed ${canvasOffset} left-0 w-full ${canvasHeight} -z-10 pointer-events-none`}
+          className={`fixed ${canvasOffset} left-0 w-full ${canvasHeight} z-0 pointer-events-none`}
         >
           {/* Desktop image — hidden on phones to skip the bandwidth. */}
           {desktopUrl && (
@@ -103,18 +103,18 @@ export default function ParallaxSection({ block }: Props) {
       {/* Dark wash */}
       <div
         aria-hidden="true"
-        className="absolute inset-0"
+        className="absolute inset-0 z-10"
         style={{ backgroundColor: `rgba(10,10,10,${overlay})` }}
       />
 
       {/* Vignette */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(10,10,10,0.5)_100%)]"
+        className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(10,10,10,0.5)_100%)]"
       />
 
       {(block.title || block.subtitle) && (
-        <div className="relative z-10 px-6 md:px-10 max-w-4xl mx-auto text-center">
+        <div className="relative z-30 px-6 md:px-10 max-w-4xl mx-auto text-center">
           {block.title && (
             <motion.h2
               initial={{ opacity: 0, y: 24 }}
