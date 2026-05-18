@@ -554,7 +554,22 @@ export default buildConfig({
                   type: 'upload',
                   relationTo: 'media',
                   required: true,
-                  label: 'Background image',
+                  label: 'Background image (desktop)',
+                  admin: {
+                    description:
+                      'Used on tablet and desktop (>= 768px). Landscape orientation recommended.',
+                  },
+                },
+                {
+                  name: 'mobileImage',
+                  type: 'upload',
+                  relationTo: 'media',
+                  required: false,
+                  label: 'Background image (mobile, optional)',
+                  admin: {
+                    description:
+                      'Optional portrait/vertical crop shown on screens < 768px. If empty, the desktop image is reused.',
+                  },
                 },
                 { name: 'title', type: 'text', localized: true, label: 'Title' },
                 { name: 'subtitle', type: 'textarea', localized: true, label: 'Subtitle' },

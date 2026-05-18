@@ -56,7 +56,10 @@ export type ArtistGridBlockData = WithSectionId & {
 export type ParallaxBlockData = {
   blockType: 'parallax'
   id?: string
+  /** Landscape/desktop background. Shown on >= 768px viewports. */
   backgroundImage: MediaDoc | string | number
+  /** Optional portrait/vertical crop shown on < 768px. */
+  mobileImage?: MediaDoc | string | number | null
   title?: string | null
   subtitle?: string | null
   overlayIntensity?: number | null

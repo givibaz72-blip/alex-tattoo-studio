@@ -183,6 +183,8 @@ export type ImageFeatureSpec = WithSectionId & {
 export type ParallaxSpec = {
   type: 'parallax'
   imageFile: string
+  /** Optional portrait/vertical crop for < 768px. */
+  mobileImageFile?: string
   title?: string
   subtitle?: string
   overlayIntensity?: number
@@ -284,6 +286,10 @@ export function buildPageBlocks(
           backgroundImage: id,
           overlayIntensity: s.overlayIntensity ?? 0.55,
           height: s.height ?? 'screen',
+        }
+        if (s.mobileImageFile) {
+          const mobileId = mediaIdsByFilename[s.mobileImageFile]
+          if (mobileId) block.mobileImage = mobileId
         }
         if (s.title) block.title = s.title
         if (s.subtitle) block.subtitle = s.subtitle
