@@ -2,59 +2,82 @@
 
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
 import type { MediaDoc } from './MediaImage'
+import { useIsMobile } from '../lib/useIsMobile'
 
 interface Props {
   heading: string
   body: string
+  /** Landscape/desktop backdrop. Shown on >= 768px viewports. */
   backgroundImage: MediaDoc
+  /** Optional portrait crop for < 768px. Falls back to `backgroundImage`. */
+  mobileImage?: MediaDoc | null
 }
 
 /**
- * About section with parallax background.
+ * About section with parallax background — same "Clip-Path Window" technique
+ * as the `<ParallaxSection>` block, but used by the home page composer to
+ * surface a single curated About section.
  *
- * Uses "Clip-Path Window" technique:
- * - The image is fixed to the viewport (locked in place)
- * - A subtle y transform creates gentle "lag" as you scroll
- * - The parent section's clip-path creates the viewing window
+ * Art direction (§14.1):
+ *  - Accepts an optional `mobileImage` portrait crop.
+ *  - On phones (< 768px) the parallax travel is reduced from ±15vh to ±5vh,
+ *    keeping depth cue without stretching the vertical image.
  */
-export default function AboutParallax({ heading, body, backgroundImage }: Props) {
+export default function AboutParallax({ heading, body, backgroundImage, mobileImage }: Props) {
   const reduceMotion = useReducedMotion()
+  const isMobile = useIsMobile()
 
   const { scrollYProgress } = useScroll({
     offset: ['start end', 'end start'],
   })
 
-  // Subtle counter-scroll: image moves UP 30vh while we scroll through the section
-  const y = useTransform(scrollYProgress, [0, 1], ['15vh', '-15vh'])
+  const travel = isMobile ? '5vh' : '15vh'
+  const negTravel = isMobile ? '-5vh' : '-15vh'
+  const y = useTransform(scrollYProgress, [0, 1], [travel, negTravel])
+  const canvasOffset = isMobile ? '-top-[5vh]' : '-top-[15vh]'
+  const canvasHeight = isMobile ? 'h-[110vh]' : 'h-[130vh]'
 
-  const imageUrl =
-    backgroundImage && typeof backgroundImage === 'object'
-      ? ((backgroundImage as MediaDoc).sizes?.hero?.url ?? (backgroundImage as MediaDoc).url)
-      : null
+  const desktopUrl = resolveImageUrl(backgroundImage)
+  const mobileUrl = resolveImageUrl(mobileImage ?? backgroundImage)
+  const hasDistinctMobile = Boolean(mobileImage)
 
   return (
     <section
       id="about"
       className="relative w-full min-h-screen [clip-path:inset(0)] bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center scroll-mt-[72px]"
     >
-      {imageUrl && (
+      {(desktopUrl || mobileUrl) && (
         <motion.div
           aria-hidden="true"
           style={reduceMotion ? {} : { y, willChange: 'transform', transform: 'translateZ(0)' }}
-          className="fixed -top-[15vh] left-0 w-full h-[130vh] -z-10 pointer-events-none"
+          className={`fixed ${canvasOffset} left-0 w-full ${canvasHeight} -z-10 pointer-events-none`}
         >
-          <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+          {desktopUrl && (
+            <img
+              src={desktopUrl}
+              alt=""
+              className={`w-full h-full object-cover ${hasDistinctMobile ? 'hidden md:block' : 'block'}`}
+              loading="lazy"
+              decoding="async"
+            />
+          )}
+          {hasDistinctMobile && mobileUrl && (
+            <img
+              src={mobileUrl}
+              alt=""
+              className="w-full h-full object-cover block md:hidden"
+              loading="lazy"
+              decoding="async"
+            />
+          )}
         </motion.div>
       )}
 
-      {/* Dark wash */}
       <div
         aria-hidden="true"
         className="absolute inset-0"
         style={{ backgroundColor: 'rgba(10,10,10,0.55)' }}
       />
-
-      {/* Vignette */}
       <div
         aria-hidden="true"
         className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(10,10,10,0.5)_100%)]"
@@ -80,6 +103,18 @@ export default function AboutParallax({ heading, body, backgroundImage }: Props)
           {body}
         </motion.p>
       </div>
+
+      {/* Gradient fade to neutral-950 at the bottom so the parallax image
+          naturally dissolves into the next section (§14.1). */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 h-32 md:h-48 bg-gradient-to-b from-transparent to-neutral-950 pointer-events-none z-20"
+      />
     </section>
   )
+}
+
+function resolveImageUrl(media: MediaDoc | null | undefined): string | null {
+  if (!media || typeof media !== 'object') return null
+  return media.sizes?.hero?.url ?? media.url ?? null
 }
