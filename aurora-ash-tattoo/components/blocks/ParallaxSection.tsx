@@ -140,12 +140,6 @@ export default function ParallaxSection({ block }: Props) {
         </div>
       )}
 
-      {/* Gradient fade to neutral-950 at the bottom so the parallax image
-          naturally dissolves into the next section (§14.1). */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 bottom-0 h-32 md:h-48 bg-gradient-to-b from-transparent to-neutral-950 pointer-events-none z-20"
-      />
     </section>
   )
 }
