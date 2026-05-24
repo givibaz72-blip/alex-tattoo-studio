@@ -1,9 +1,7 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { getPayload } from '../lib/payload'
 import SocialLinks from './SocialLinks'
 import ScrollTopButton from './ScrollTopButton'
-import type { MediaDoc } from './MediaImage'
 
 const FALLBACK = {
   name: 'Aurora & Ash',
@@ -28,17 +26,11 @@ const COPY = {
   makeAppointment: 'MAKE AN APPOINTMENT',
 } as const
 
-// Default logo lives in /public so it serves without going through CMS.
-const FALLBACK_LOGO = '/footer-logo.svg'
-const LOGO_WIDTH = 160
-const LOGO_HEIGHT = 56
-
 export default async function Footer() {
   const t = COPY
 
   let info = FALLBACK
   let social: Record<string, unknown> = {}
-  let footerLogoUrl: string = FALLBACK_LOGO
 
   try {
     const payload = await getPayload()
@@ -51,7 +43,6 @@ export default async function Footer() {
       address?: string | null
       hours?: string | null
       social?: Record<string, unknown> | null
-      footerLogo?: MediaDoc | string | number | null
     }
     info = {
       name: FALLBACK.name,
@@ -61,12 +52,6 @@ export default async function Footer() {
       hours: settings?.hours ?? FALLBACK.hours,
     }
     social = (settings?.social ?? {}) as Record<string, unknown>
-
-    const fl = settings?.footerLogo
-    if (fl && typeof fl === 'object') {
-      const url = (fl as MediaDoc).url
-      if (typeof url === 'string' && url.length > 0) footerLogoUrl = url
-    }
   } catch {
     // fall through to fallback
   }
@@ -81,16 +66,14 @@ export default async function Footer() {
       <ScrollTopButton />
 
       <div className="max-w-7xl mx-auto px-6 md:px-10 pt-16 pb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-        <Link href="/" aria-label="Aurora & Ash — home" className="inline-flex items-center min-h-11">
-          <Image
-            src={footerLogoUrl}
-            alt="Aurora & Ash"
-            width={LOGO_WIDTH}
-            height={LOGO_HEIGHT}
-            unoptimized
-            className="h-auto w-[140px] md:w-[160px] opacity-90"
-            priority={false}
-          />
+        <Link
+          href="/"
+          aria-label="Aurora & Ash — home"
+          className="inline-flex items-center min-h-11"
+        >
+          <span className="font-serif text-2xl md:text-3xl tracking-[0.12em] text-[#D4AF37] uppercase select-none">
+            Aurora <span className="font-serif italic text-xl md:text-2xl">&amp;</span> Ash
+          </span>
         </Link>
         <p className="font-serif italic text-[#D4AF37]/65 text-sm md:text-base max-w-md md:text-right leading-relaxed">
           A private studio for permanent art — by appointment, in West Hollywood.
@@ -111,7 +94,7 @@ export default async function Footer() {
             <li><Link href="/about" className="footer__link">{t.about}</Link></li>
             <li><Link href="/aftercare" className="footer__link">{t.aftercare}</Link></li>
             <li><Link href="/faq" className="footer__link">{t.faq}</Link></li>
-            <li><Link href="/contact" className="footer__link">VISIT &amp; CONTACT</Link></li>
+            <li><Link href="/#location" className="footer__link">VISIT &amp; LOCATION</Link></li>
           </ul>
 
           <h3 className="footer__subheading mt-8">{t.legal}</h3>
@@ -148,4 +131,4 @@ export default async function Footer() {
       </div>
     </footer>
   )
-}
+}

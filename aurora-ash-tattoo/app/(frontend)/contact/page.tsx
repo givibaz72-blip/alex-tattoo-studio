@@ -66,7 +66,9 @@ async function loadArtists(): Promise<ArtistOption[]> {
       id: doc.id,
       slug: doc.slug,
       name: doc.name,
-      style: doc.role,
+      style: Array.isArray(doc.styles) && doc.styles.length
+        ? doc.styles.map((s: any) => (typeof s === 'object' ? s.name : s)).join(' · ')
+        : null,
       portrait: typeof doc.portrait === 'object' ? doc.portrait : null,
     }))
   } catch (err) {

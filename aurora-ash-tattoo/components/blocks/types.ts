@@ -62,6 +62,7 @@ export type ParallaxBlockData = {
   mobileImage?: MediaDoc | string | number | null
   title?: string | null
   subtitle?: string | null
+  brandPillars?: Array<{ pillar: string; id?: string | null }> | null
   overlayIntensity?: number | null
   sectionId?: string | null
   height?: 'screen' | 'tall' | 'half' | null

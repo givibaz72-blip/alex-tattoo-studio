@@ -3,9 +3,9 @@ import { getPayload } from '../lib/payload'
 import TeamGrid, { type TeamMember } from './TeamGrid'
 
 const FALLBACK: TeamMember[] = [
-  { id: 1, name: 'Alex White North', slug: 'alex', role: 'Lead Artist / Blackwork', portrait: { url: '/portfolio/alex.png', alt: 'Alex' } },
-  { id: 2, name: 'Aurora', slug: 'aurora', role: 'Fine Line / Ornamental', portrait: { url: '/portfolio/aurora.png', alt: 'Aurora' } },
-  { id: 3, name: 'Julian', slug: 'julian', role: 'Minimalism / Dark Art', portrait: { url: '/portfolio/julian.png', alt: 'Julian' } },
+  { id: 1, name: 'Alex White North', slug: 'alex', styles: [{ id: 1, name: 'Blackwork' }], portrait: { url: '/portfolio/alex.png', alt: 'Alex' } },
+  { id: 2, name: 'Aurora', slug: 'aurora', styles: [{ id: 2, name: 'Fine Line' }, { id: 3, name: 'Ornamental' }], portrait: { url: '/portfolio/aurora.png', alt: 'Aurora' } },
+  { id: 3, name: 'Julian', slug: 'julian', styles: [{ id: 4, name: 'Minimalism' }, { id: 5, name: 'Dark Art' }], portrait: { url: '/portfolio/julian.png', alt: 'Julian' } },
 ]
 
 const COPY = {
@@ -31,7 +31,7 @@ export default async function Team() {
         id: doc.id,
         name: doc.name,
         slug: doc.slug,
-        role: doc.role,
+        styles: Array.isArray(doc.styles) ? doc.styles : null,
         portrait: typeof doc.portrait === 'object' ? doc.portrait : null,
       }))
     }

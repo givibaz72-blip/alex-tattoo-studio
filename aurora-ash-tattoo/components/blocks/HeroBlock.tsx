@@ -59,13 +59,13 @@ export default function HeroBlock({ block }: Props) {
         className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(10,10,10,0.5)_100%)]"
       />
 
-      {/* Content centered with z-index: 10 for proper layering */}
+      {/* Content — no max-w on subtitle so "Santa Monica" centres freely */}
       <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto px-6 text-center">
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-          className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight leading-[1.05] text-[#D4AF37]"
+          className="font-serif text-[clamp(3rem,8vw,6rem)] tracking-tight leading-[1.05] text-[#D4AF37]"
         >
           AURORA & ASH
         </motion.h1>
@@ -75,9 +75,12 @@ export default function HeroBlock({ block }: Props) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-6 font-serif italic text-lg sm:text-xl md:text-2xl text-[#D4AF37]/80 max-w-2xl"
+            className="mx-auto text-center mt-6 font-serif italic text-[clamp(1rem,2vw,1.5rem)] tracking-[0.02em] md:tracking-[0.12em] text-[#D4AF37]/80 md:max-w-none"
           >
-            {block.subtitle}
+            A private creative sanctuary for permanent art{' '}
+            <br className="hidden md:block" />
+            in{' '}
+            <span className="whitespace-nowrap">Santa Monica.</span>
           </motion.p>
         )}
 
@@ -104,3 +107,4 @@ export default function HeroBlock({ block }: Props) {
     </section>
   )
 }
+

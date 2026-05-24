@@ -9,7 +9,7 @@ export type TeamMember = {
   id: string | number
   name: string
   slug: string
-  role?: string | null
+  styles?: Array<{ id: string | number; name: string }> | null
   portrait?: MediaDoc | null
 }
 
@@ -60,8 +60,10 @@ export default function TeamGrid({ members }: Props) {
                 <h3 className="font-serif text-2xl tracking-wide uppercase mb-2">
                   {member.name}
                 </h3>
-                {member.role ? (
-                  <p className="label-line text-[#D4AF37]/60 mb-3">{member.role}</p>
+                {member.styles?.length ? (
+                  <p className="label-line text-[#D4AF37]/60 mb-3">
+                    {member.styles.map((s) => s.name).join(' · ')}
+                  </p>
                 ) : null}
                 <p className="label-line text-[#D4AF37]/45 transition-colors duration-300 group-hover:text-[#D4AF37] group-focus-within:text-[#D4AF37]">
                   {COPY.viewPortfolio} <span aria-hidden="true">→</span>

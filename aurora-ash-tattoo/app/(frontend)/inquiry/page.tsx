@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { Suspense } from 'react'
 
 import NavBar from '../../../components/NavBar'
@@ -33,7 +32,9 @@ async function loadArtists(): Promise<ArtistOption[]> {
       id: doc.id,
       slug: doc.slug,
       name: doc.name,
-      style: doc.role,
+      style: Array.isArray(doc.styles) && doc.styles.length
+        ? doc.styles.map((s: any) => (typeof s === 'object' ? s.name : s)).join(' · ')
+        : null,
       portrait: typeof doc.portrait === 'object' ? doc.portrait : null,
     }))
   } catch (err) {
@@ -42,21 +43,29 @@ async function loadArtists(): Promise<ArtistOption[]> {
   }
 }
 
-async function loadStudio(): Promise<{ email?: string; heroImageUrl?: string }> {
+async function loadStudio(): Promise<{ email?: string }> {
   try {
     const payload = await getPayload()
-    const settings = (await payload.findGlobal({ slug: 'siteSettings', depth: 1 })) as any
-    const hero = settings?.heroImage
-    const heroImageUrl =
-      hero && typeof hero === 'object'
-        ? (hero?.sizes?.hero?.url ?? hero?.url ?? undefined)
-        : undefined
+    const settings = (await payload.findGlobal({ slug: 'siteSettings' })) as any
     return {
       email: settings?.email ?? undefined,
-      heroImageUrl,
     }
   } catch {
     return {}
+  }
+}
+
+async function loadInquiryPage(): Promise<{ title: string; subtitle: string }> {
+  try {
+    const payload = await getPayload()
+    const data = (await payload.findGlobal({ slug: 'inquiryPage' })) as any
+    return {
+      title: data?.title || 'Make an appointment',
+      subtitle: data?.subtitle || 'Please complete the form below',
+    }
+  } catch (err) {
+    console.error('[Inquiry] failed to load inquiryPage, defaults used', err)
+    return { title: 'Make an appointment', subtitle: 'Please complete the form below' }
   }
 }
 
@@ -68,7 +77,7 @@ export const metadata = {
 export default async function InquiryPage(props: Props) {
   // Next.js 15+: searchParams is a Promise.
   await props.searchParams
-  const [artists, studio] = await Promise.all([loadArtists(), loadStudio()])
+  const [artists, studio, inquiryPage] = await Promise.all([loadArtists(), loadStudio(), loadInquiryPage()])
 
   return (
     <>
@@ -76,37 +85,17 @@ export default async function InquiryPage(props: Props) {
         <NavBar />
       </Suspense>
 
-      {/* ─── Editorial hero band ──────────────────────────────────────────
-          Mirrors the Bang Bang "Make an Appointment" header strip:
-          full-width city/atmosphere image, dark wash, big centred title. */}
+      {/* Compact page header — no hero image, just typography. */}
       <section
-        id="main"
-        className="relative w-full h-[55vh] min-h-[420px] md:h-[60vh] md:min-h-[520px] overflow-hidden"
+        aria-label="Make an appointment"
+        className="w-full bg-[#0a0a0a] pt-24 pb-12 md:pt-32 md:pb-16 px-6 text-center"
       >
-        {studio.heroImageUrl ? (
-          <Image
-            src={studio.heroImageUrl}
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover opacity-40"
-          />
-        ) : (
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-[linear-gradient(180deg,#161616_0%,#1a1410_55%,#0a0a0a_100%)]"
-          />
-        )}
-        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/55 via-[#0a0a0a]/65 to-[#0a0a0a]" />
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
-          <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-[0.04em] uppercase text-[#D4AF37] leading-none">
-            Make an appointment
-          </h1>
-          <p className="mt-8 label-line text-[#D4AF37]/65">
-            Please complete the form below
-          </p>
-        </div>
+        <h1 className="font-serif text-3xl md:text-5xl tracking-wider text-[#D4AF37] uppercase">
+          {inquiryPage.title}
+        </h1>
+        <p className="text-zinc-400 font-light mt-4 text-sm md:text-base">
+          {inquiryPage.subtitle}
+        </p>
       </section>
 
       <Suspense fallback={null}>

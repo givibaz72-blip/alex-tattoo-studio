@@ -55,7 +55,7 @@ export default function LocationSection({
       id="location"
       data-scroll-section
       aria-labelledby="location-heading"
-      className="relative bg-[#0a0a0a] text-[#D4AF37] py-24 md:py-32 px-6 md:px-10 scroll-mt-[72px] border-y border-[#D4AF37]/10"
+      className="relative bg-[#0a0a0a] text-[#D4AF37] min-h-[calc(100vh-5rem)] flex flex-col justify-center py-10 md:py-12 px-6 md:px-10 scroll-mt-20 border-y border-[#D4AF37]/10"
     >
       {/* Faint gold corner ticks — frame the section without being heavy. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
@@ -74,16 +74,19 @@ export default function LocationSection({
 
         <h2
           id="location-heading"
-          className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-[0.06em] uppercase mb-12 md:mb-16 leading-none"
+          className="font-serif text-4xl sm:text-5xl md:text-6xl tracking-[0.06em] uppercase mb-6 md:mb-8 leading-none"
         >
           Location
         </h2>
 
-        {/* Map figure */}
+        {/* Map figure — max-h caps height on tall screens so the map fits
+            in one viewport together with the heading above it.
+            aspect-[16/7] gives a cinematic panoramic crop that still reads
+            well as a map without dominating the page. */}
         <figure
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
-          className="relative aspect-[16/10] w-full overflow-hidden border border-[#D4AF37]/25 bg-black mb-10 transition-shadow duration-500 hover:shadow-[0_0_60px_rgba(212,175,55,0.18)]"
+          className="relative w-full h-[220px] md:h-[260px] overflow-hidden border border-[#D4AF37]/25 bg-black mb-6 transition-shadow duration-500 hover:shadow-[0_0_60px_rgba(212,175,55,0.18)]"
         >
           <iframe
             src={mapEmbedUrl}
@@ -110,8 +113,9 @@ export default function LocationSection({
           </div>
         </figure>
 
-        {/* Address line — tight, tracked, uppercase. */}
-        <p className="font-serif text-sm md:text-base tracking-[0.32em] uppercase text-[#D4AF37] mb-4">
+        {/* Address line — fluid size + tighter mobile tracking so
+            "Santa Monica" never orphans. On md+ lock to one line. */}
+        <p className="font-serif text-[clamp(0.65rem,2.2vw,1rem)] tracking-[0.1em] md:tracking-[0.28em] uppercase text-[#D4AF37] mb-4 md:whitespace-nowrap">
           {address}
         </p>
         <p className="label-line text-[#D4AF37]/60 mb-2">{hours}</p>
@@ -123,7 +127,7 @@ export default function LocationSection({
         </a>
 
         {/* Hairline separator + small CTA back to inquiry */}
-        <div className="mt-12 flex flex-col items-center gap-5">
+        <div className="mt-8 flex flex-col items-center gap-4">
           <span aria-hidden="true" className="block w-12 h-px bg-[#D4AF37]/30" />
           <a
             href="/inquiry"

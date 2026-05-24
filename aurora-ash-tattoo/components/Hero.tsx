@@ -89,10 +89,10 @@ const Hero = ({ heroImage, locale = 'en' }: HeroProps) => {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.1, delay: 0.1, ease: 'easeOut' }}
-          className="font-serif text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tight mb-6 leading-none"
+          className="font-serif text-[clamp(2.5rem,11vw,8rem)] tracking-tight mb-6 leading-none"
         >
           AURORA{' '}
-          <span className="font-serif italic text-3xl sm:text-5xl md:text-6xl lg:text-7xl align-middle">
+          <span className="font-serif italic text-[clamp(1.5rem,6.5vw,5rem)] align-middle">
             &
           </span>{' '}
           ASH
@@ -102,7 +102,7 @@ const Hero = ({ heroImage, locale = 'en' }: HeroProps) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.9 }}
-          className="font-serif italic text-lg sm:text-xl md:text-2xl text-[#D4AF37]/85 mb-12"
+          className="font-serif italic text-[clamp(1rem,3vw,1.5rem)] text-[#D4AF37]/85 mb-12"
         >
           {t.tagline}
         </motion.p>
@@ -134,7 +134,7 @@ const Hero = ({ heroImage, locale = 'en' }: HeroProps) => {
         transition={{ delay: 1.2, duration: 0.8 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 z-10 px-4 w-full"
       >
-        <p className="label-line text-[#D4AF37]/55 text-center">
+        <p className="label-line text-[clamp(0.6rem,2vw,0.75rem)] text-[#D4AF37]/55 text-center px-2">
           {t.badge}
         </p>
         <motion.span

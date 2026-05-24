@@ -17,8 +17,12 @@ const nextConfig = {
   // lives in `next lint` only. We rely on TypeScript checks during build.
   images: {
     remotePatterns: [
+      // Local development (Payload dev server)
       { protocol: 'http', hostname: 'localhost', port: '3000', pathname: '/api/media/**' },
       { protocol: 'http', hostname: 'localhost', port: '3000', pathname: '/media/**' },
+      // Production — replace with your actual domain before deploy
+      { protocol: 'https', hostname: 'aurora-ash.tattoo', pathname: '/media/**' },
+      { protocol: 'https', hostname: 'aurora-ash.tattoo', pathname: '/api/media/**' },
     ],
   },
 }

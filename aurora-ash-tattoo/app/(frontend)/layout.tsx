@@ -2,6 +2,10 @@ import type { Metadata } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
 import '../globals.css'
 
+// Ensure the entire frontend route group — including Footer's Payload fetch —
+// is always rendered dynamically so social links and CMS data are never stale.
+export const dynamic = 'force-dynamic'
+
 const playfair = Playfair_Display({
   subsets: ['latin'],
   weight: ['400', '700'],

@@ -1,4 +1,7 @@
 import { Suspense } from 'react'
+import type { Metadata } from 'next'
+
+export const dynamic = 'force-dynamic'
 
 import NavBar from '../../components/NavBar'
 import Hero from '../../components/Hero'
@@ -9,6 +12,39 @@ import LocationSection from '../../components/LocationSection'
 import type { PageBlock } from '../../components/blocks/types'
 import { getPayload } from '../../lib/payload'
 
+// ---------------------------------------------------------------------------
+// Dynamic metadata (Title, Description, Open Graph) — Next.js Metadata API
+// ---------------------------------------------------------------------------
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const payload = await getPayload()
+    const settings = (await payload.findGlobal({ slug: 'siteSettings', depth: 1 })) as any
+
+    return {
+      title: settings?.metaTitle || 'Aurora & Ash Tattoo | Эксклюзивная тату-студия',
+      description:
+        settings?.metaDescription ||
+        'Профессиональная тату-студия Aurora & Ash. Индивидуальные эскизы, опытные мастера, премиальное качество и полная безопасность.',
+      openGraph: {
+        title: settings?.metaTitle || 'Aurora & Ash Tattoo',
+        description: settings?.metaDescription,
+        images: settings?.ogImage?.url ? [{ url: settings.ogImage.url }] : [],
+        type: 'website',
+      },
+      alternates: {
+        canonical: '/',
+      },
+    }
+  } catch {
+    return {
+      title: 'Aurora & Ash Tattoo | Эксклюзивная тату-студия',
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Page component
+// ---------------------------------------------------------------------------
 export default async function Home() {
   let heroImage: any = null
   let homeBlocks: PageBlock[] | null = null
@@ -66,8 +102,46 @@ export default async function Home() {
     ? studio.address.replace(/\n/g, ' · ')
     : '8282 Santa Monica Blvd · West Hollywood, CA 90046'
 
+  // ---------------------------------------------------------------------------
+  // Structured data — JSON-LD (TattooParlor) for local SEO
+  // ---------------------------------------------------------------------------
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'TattooParlor',
+    name: 'Aurora & Ash Tattoo',
+    description: 'Премиальная тату-студия с фокусом на индивидуальное искусство и безопасность.',
+    url: 'https://aurora-ash.tattoo',
+    logo: 'https://aurora-ash.tattoo/logo.png',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: studio.address ?? 'Улица и дом студии',
+      addressLocality: 'Город',
+      addressCountry: 'RU',
+    },
+    openingHoursSpecification: {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: [
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
+      ],
+      opens: '12:00',
+      closes: '21:00',
+    },
+    priceRange: '$$',
+  }
+
   return (
     <>
+      {/* Structured data for search engines */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Suspense>
         <NavBar />
       </Suspense>

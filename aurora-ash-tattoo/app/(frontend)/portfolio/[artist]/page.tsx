@@ -131,8 +131,10 @@ export default async function ArtistPage({ params, searchParams }: Props) {
             <h1 className="mt-6 font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight">
               {doc.name}
             </h1>
-            {doc.role ? (
-              <p className="mt-3 label-line text-[#D4AF37]/75">{doc.role}</p>
+            {Array.isArray(doc.styles) && doc.styles.length > 0 ? (
+              <p className="mt-3 label-line text-[#D4AF37]/75">
+                {doc.styles.map((s: any) => (typeof s === 'object' ? s.name : s)).join(' · ')}
+              </p>
             ) : null}
           </div>
         </section>

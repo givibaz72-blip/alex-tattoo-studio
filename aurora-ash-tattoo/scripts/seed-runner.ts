@@ -84,7 +84,6 @@ const STYLES = [
 type ArtistSeed = {
   slug: string
   name: string
-  role: string
   shortBio: string
   longBio: string[]
   styleSlugs: string[]
@@ -98,7 +97,6 @@ const ARTISTS: ArtistSeed[] = [
   {
     slug: 'marcus-reyes',
     name: 'Marcus "Wolfheart" Reyes',
-    role: 'Lead Artist — Neo-Traditional & American Traditional',
     shortBio: 'Twelve years of bold-line work out of Brooklyn. Specializes in mythic animals, daggers and roses with a modern color palette.',
     longBio: [
       'Marcus "Wolfheart" Reyes apprenticed in a Bushwick shop in 2013 and has been resident at Aurora & Ash since 2024. His work is rooted in the American Traditional canon — strong black outlines, deliberate composition, a tight palette — but reaches into Neo-Traditional territory with extra color depth and ornamental detail.',
@@ -112,7 +110,6 @@ const ARTISTS: ArtistSeed[] = [
   {
     slug: 'elena-voss',
     name: 'Elena Voss',
-    role: 'Fine Line · Floral · Botanical',
     shortBio: 'Single-needle florals, herbarium studies, and ornamental linework. Quiet pieces with surgical precision.',
     longBio: [
       'Elena trained as a botanical illustrator in Vienna before transitioning to tattooing in 2019. Her practice draws on 19th-century herbarium plates: precise stems, dotted texture, soft anatomical accuracy. The result is jewelry-like work that sits beautifully on forearms, ribs, sternum and behind-ear placements.',
@@ -126,7 +123,6 @@ const ARTISTS: ArtistSeed[] = [
   {
     slug: 'kai-nakamura',
     name: 'Kai Nakamura',
-    role: 'Japanese · Irezumi · Large-Scale',
     shortBio: 'Full sleeves, back pieces, and body suits in the traditional Japanese idiom. Long-term collaborations only.',
     longBio: [
       'Kai studied under a Yokohama-based horishi for six years before relocating to the United States in 2021. His work follows traditional Irezumi composition rules — wind bars, clouds, water, seasonal motifs — applied at the scale of full sleeves, back panels, and complete body suits.',
@@ -140,7 +136,6 @@ const ARTISTS: ArtistSeed[] = [
   {
     slug: 'riley-obrien',
     name: "Riley O'Brien",
-    role: 'Blackwork · Geometric · Dotwork',
     shortBio: 'Sacred geometry, mandalas, and graphic blackwork. Comfortable on any placement, sleeves a specialty.',
     longBio: [
       `Riley's practice sits at the intersection of mathematical pattern and bold blackwork. They build mandalas around natural lines of the body — rib lines, deltoid curves, spinal columns — so the design feels grown into the placement rather than stamped onto it.`,
@@ -154,7 +149,6 @@ const ARTISTS: ArtistSeed[] = [
   {
     slug: 'sofia-mendez',
     name: 'Sofia Mendez',
-    role: 'Lettering · Script · Calligraphy',
     shortBio: 'Hand-drawn typography for personal phrases, blackletter compositions, and ornamental scripts.',
     longBio: [
       'Sofia is a trained calligrapher with a decade of work in editorial design and packaging before moving into tattooing in 2022. Every script she tattoos is hand-drawn from scratch in pencil, then translated to skin at the consultation — no fonts, no AI, no generic flourishes.',
@@ -405,7 +399,6 @@ export async function runSeed(payload: any): Promise<SeedResult> {
         data: {
           name: a.name,
           slug: a.slug,
-          role: a.role,
           shortBio: a.shortBio,
           longBio: richText(...a.longBio),
           styles: styleIds,

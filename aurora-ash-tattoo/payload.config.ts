@@ -205,7 +205,7 @@ export default buildConfig({
       labels: { singular: 'Artist', plural: 'Artists' },
       admin: {
         useAsTitle: 'name',
-        defaultColumns: ['name', 'role', 'featured', 'updatedAt'],
+        defaultColumns: ['name', 'featured', 'updatedAt'],
         group: 'Content',
         description: 'Artist profile shown at /portfolio/[slug]. Remember to Publish, not just Save.',
         livePreview: {
@@ -243,13 +243,6 @@ export default buildConfig({
           index: true,
           label: 'URL slug',
           admin: { description: 'URL segment for the page address.' },
-        },
-        {
-          name: 'role',
-          type: 'text',
-          localized: true,
-          label: 'Specialty',
-          admin: { description: 'e.g. Lead Artist / Blackwork' },
         },
         {
           name: 'shortBio',
@@ -574,6 +567,18 @@ export default buildConfig({
                 { name: 'title', type: 'text', localized: true, label: 'Title' },
                 { name: 'subtitle', type: 'textarea', localized: true, label: 'Subtitle' },
                 {
+                  name: 'brandPillars',
+                  type: 'array',
+                  label: 'Brand pillars',
+                  admin: {
+                    description:
+                      'Short descriptors shown below the subtitle. "Bespoke • Private • Enduring" for example.',
+                  },
+                  fields: [
+                    { name: 'pillar', type: 'text', required: true, label: 'Pillar' },
+                  ],
+                },
+                {
                   name: 'overlayIntensity',
                   type: 'number',
                   defaultValue: 0.55,
@@ -839,6 +844,33 @@ export default buildConfig({
         group: 'Settings' },
       access: { read: () => true, update: isAdmin },
       fields: [
+        // --- SEO -------------------------------------------------------
+        {
+          name: 'metaTitle',
+          type: 'text',
+          label: 'Meta Title',
+          admin: {
+            description: 'Browser tab title and Google headline. Recommended: 50–60 characters.',
+          },
+        },
+        {
+          name: 'metaDescription',
+          type: 'textarea',
+          label: 'Meta Description',
+          admin: {
+            description: 'Snippet shown in search results. Recommended: 120–160 characters.',
+          },
+        },
+        {
+          name: 'ogImage',
+          type: 'upload',
+          relationTo: 'media',
+          label: 'Open Graph Image',
+          admin: {
+            description: 'Preview image when the site is shared on social media. Recommended: 1200×630 px.',
+          },
+        },
+        // --- Studio info ------------------------------------------------
         { name: 'phone', type: 'text', label: 'Phone' },
         { name: 'email', type: 'text', label: 'Email' },
         { name: 'address', type: 'textarea', localized: true, label: 'Address' },
@@ -853,8 +885,22 @@ export default buildConfig({
             { name: 'whatsapp', type: 'text', label: 'WhatsApp' },
           ],
         },
+        // --- Media ------------------------------------------------------
         { name: 'footerLogo', type: 'upload', relationTo: 'media', label: 'Footer logo' },
         { name: 'heroImage', type: 'upload', relationTo: 'media', label: 'Hero image' },
+      ],
+    },
+    {
+      slug: 'inquiryPage',
+      label: 'Inquiry Page',
+      admin: {
+        group: 'Settings',
+        description: 'Title and subtitle for the Make an Appointment page.',
+      },
+      access: { read: () => true, update: isAdmin },
+      fields: [
+        { name: 'title', type: 'text', label: 'Page title', defaultValue: 'Make an appointment' },
+        { name: 'subtitle', type: 'text', label: 'Subtitle', defaultValue: 'Please complete the form below' },
       ],
     },
   ],

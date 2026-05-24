@@ -69,14 +69,13 @@ export default function InquiryForm({ artists, studioEmail }: InquiryFormProps) 
   } = useForm<InquiryFormPayload>({
     resolver: zodResolver(inquiryFormSchema),
     defaultValues: {
-      fullName: '',
+      name: '',
       email: '',
       phone: '',
-      message: '',
-      artistId: '' as unknown as string | number,
-      ageConfirm: false,
+      vision: '',
+      artist: '' as unknown as string | number,
+      ageConfirmed: false,
       privacyConsent: false,
-      termsConsent: false,
     },
   })
 
@@ -107,26 +106,30 @@ export default function InquiryForm({ artists, studioEmail }: InquiryFormProps) 
   }
 
   // ── Success state ───────────────────────────────────────────────────
+  // NOTE: we return a plain <div>, NOT a new <main>.
+  // page.tsx already renders NavBar + a <section> page-header + <Footer>.
+  // Returning <main> here would create a second root block that the browser
+  // repositions independently, causing content to scroll out of view.
+  // A <div> drops in as the form replacement within the existing page flow.
   if (isSubmitSuccessful && !submitError) {
     return (
-      <main
-        id="main"
-        className="min-h-screen bg-[var(--color-charcoal)] flex flex-col items-center justify-center px-6 text-center"
-      >
-        <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[var(--color-gold)] mb-6">
+      <div className="w-full px-6 pt-12 pb-24 md:pt-16 md:pb-32 flex flex-col items-center text-center">
+        <span aria-hidden="true" className="block w-10 h-px bg-[var(--color-gold)]/40 mb-10" />
+
+        <h2 className="font-serif text-4xl md:text-5xl tracking-tight text-[var(--color-gold)] mb-5">
           Thank you
         </h2>
-        <p className="text-[var(--text-secondary)] max-w-md mb-12 leading-relaxed">
+        <p className="text-[var(--text-secondary)] max-w-sm leading-relaxed mb-12">
           Your request is in our hands — expect a personal reply within 48
           hours.
         </p>
         <Link
           href="/"
-          className="label-line px-10 py-3 border border-[var(--color-gold)] text-[var(--color-gold)] hover:bg-[var(--color-gold)] hover:text-[var(--color-charcoal)] transition-colors"
+          className="label-line inline-flex items-center min-h-11 px-10 py-3 border border-[var(--color-gold)] text-[var(--color-gold)] hover:bg-[var(--color-gold)] hover:text-[var(--color-charcoal)] transition-colors"
         >
           Back to home
         </Link>
-      </main>
+      </div>
     )
   }
 
@@ -162,22 +165,22 @@ export default function InquiryForm({ artists, studioEmail }: InquiryFormProps) 
             </label>
             <select
               id="inquiry-artist"
-              {...register('artistId', {
+              {...register('artist', {
                 setValueAs: (v: string) => {
                   if (v === '') return v // let Zod reject empty string
                   const n = Number(v)
                   return Number.isNaN(n) ? v : n
                 },
               })}
-              aria-invalid={Boolean(errors.artistId)}
-              aria-describedby={errors.artistId ? 'err-artist' : undefined}
+              aria-invalid={Boolean(errors.artist)}
+              aria-describedby={errors.artist ? 'err-artist' : undefined}
               // `colorScheme: 'dark'` tells the browser to render the native
               // dropdown popup with its dark UI, so the unstyled <option>
               // background no longer defaults to white. The explicit style
               // on each <option> covers Chromium/Firefox where the popup
               // does not inherit from the styled <select>.
               style={{ colorScheme: 'dark' }}
-              className={`${INPUT_BASE} ${errors.artistId ? INPUT_ERROR : ''} cursor-pointer appearance-none`}
+              className={`${INPUT_BASE} ${errors.artist ? INPUT_ERROR : ''} cursor-pointer appearance-none`}
             >
               <option value="" style={{ backgroundColor: '#0a0a0a', color: '#8a7b45' }}>
                 Select an artist…
@@ -193,33 +196,33 @@ export default function InquiryForm({ artists, studioEmail }: InquiryFormProps) 
                 </option>
               ))}
             </select>
-            {errors.artistId && (
+            {errors.artist && (
               <p id="err-artist" className="mt-1.5 text-rose-400 text-xs" role="alert">
-                {errors.artistId.message}
+                {errors.artist.message}
               </p>
             )}
           </div>
 
-          {/* ── Message (textarea) ────────────────────────────────── */}
+          {/* ── Vision (textarea) ─────────────────────────────────── */}
           <div>
             <label
-              htmlFor="inquiry-message"
+              htmlFor="inquiry-vision"
               className="block font-sans text-sm text-[var(--text-secondary)] mb-2"
             >
               Describe your idea
             </label>
             <textarea
-              id="inquiry-message"
+              id="inquiry-vision"
               rows={5}
-              {...register('message')}
+              {...register('vision')}
               placeholder="The story or symbols you want to carry on your skin…"
-              aria-invalid={Boolean(errors.message)}
-              aria-describedby={errors.message ? 'err-message' : undefined}
-              className={`${INPUT_BASE} ${errors.message ? INPUT_ERROR : ''} resize-y`}
+              aria-invalid={Boolean(errors.vision)}
+              aria-describedby={errors.vision ? 'err-vision' : undefined}
+              className={`${INPUT_BASE} ${errors.vision ? INPUT_ERROR : ''} resize-y`}
             />
-            {errors.message && (
-              <p id="err-message" className="mt-1.5 text-rose-400 text-xs" role="alert">
-                {errors.message.message}
+            {errors.vision && (
+              <p id="err-vision" className="mt-1.5 text-rose-400 text-xs" role="alert">
+                {errors.vision.message}
               </p>
             )}
           </div>
@@ -236,15 +239,15 @@ export default function InquiryForm({ artists, studioEmail }: InquiryFormProps) 
               id="inquiry-name"
               type="text"
               autoComplete="name"
-              {...register('fullName')}
+              {...register('name')}
               placeholder="Your full name"
-              aria-invalid={Boolean(errors.fullName)}
-              aria-describedby={errors.fullName ? 'err-name' : undefined}
-              className={`${INPUT_BASE} ${errors.fullName ? INPUT_ERROR : ''}`}
+              aria-invalid={Boolean(errors.name)}
+              aria-describedby={errors.name ? 'err-name' : undefined}
+              className={`${INPUT_BASE} ${errors.name ? INPUT_ERROR : ''}`}
             />
-            {errors.fullName && (
+            {errors.name && (
               <p id="err-name" className="mt-1.5 text-rose-400 text-xs" role="alert">
-                {errors.fullName.message}
+                {errors.name.message}
               </p>
             )}
           </div>
@@ -308,12 +311,12 @@ export default function InquiryForm({ artists, studioEmail }: InquiryFormProps) 
             </legend>
 
             <div className="space-y-4 mt-2">
-              {/* Age confirm */}
+              {/* Age confirmed */}
               <label className="flex items-start gap-3 cursor-pointer group">
                 <input
                   type="checkbox"
-                  {...register('ageConfirm')}
-                  aria-invalid={Boolean(errors.ageConfirm)}
+                  {...register('ageConfirmed')}
+                  aria-invalid={Boolean(errors.ageConfirmed)}
                   className="mt-0.5 w-4 h-4 accent-[var(--color-gold)] cursor-pointer flex-shrink-0"
                 />
                 <span className="font-sans text-sm text-[var(--text-secondary)] leading-relaxed group-hover:text-[var(--text-primary)] transition-colors">
@@ -342,25 +345,12 @@ export default function InquiryForm({ artists, studioEmail }: InquiryFormProps) 
                   .
                 </span>
               </label>
-
-              {/* Terms consent */}
-              <label className="flex items-start gap-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  {...register('termsConsent')}
-                  aria-invalid={Boolean(errors.termsConsent)}
-                  className="mt-0.5 w-4 h-4 accent-[var(--color-gold)] cursor-pointer flex-shrink-0"
-                />
-                <span className="font-sans text-sm text-[var(--text-secondary)] leading-relaxed group-hover:text-[var(--text-primary)] transition-colors">
-                  I agree to the terms of service.
-                </span>
-              </label>
             </div>
 
             {/* Aggregate consent errors */}
-            {(errors.ageConfirm || errors.privacyConsent || errors.termsConsent) && (
+            {(errors.ageConfirmed || errors.privacyConsent) && (
               <ul className="mt-4 space-y-1" role="alert">
-                {[errors.ageConfirm, errors.privacyConsent, errors.termsConsent]
+                {[errors.ageConfirmed, errors.privacyConsent]
                   .filter(Boolean)
                   .map((e, i) => (
                     <li key={i} className="text-rose-400 text-xs">

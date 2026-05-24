@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
 import type { MediaDoc } from './MediaImage'
 import { useIsMobile } from '../lib/useIsMobile'
@@ -11,6 +12,8 @@ interface Props {
   backgroundImage: MediaDoc
   /** Optional portrait crop for < 768px. Falls back to `backgroundImage`. */
   mobileImage?: MediaDoc | null
+  /** Set true only when this section is the LCP element (first visible screen). */
+  priority?: boolean
 }
 
 /**
@@ -23,7 +26,7 @@ interface Props {
  *  - On phones (< 768px) the parallax travel is reduced from ±15vh to ±5vh,
  *    keeping depth cue without stretching the vertical image.
  */
-export default function AboutParallax({ heading, body, backgroundImage, mobileImage }: Props) {
+export default function AboutParallax({ heading, body, backgroundImage, mobileImage, priority = false }: Props) {
   const reduceMotion = useReducedMotion()
   const isMobile = useIsMobile()
 
@@ -53,21 +56,25 @@ export default function AboutParallax({ heading, body, backgroundImage, mobileIm
           className={`fixed ${canvasOffset} left-0 w-full ${canvasHeight} z-0 pointer-events-none`}
         >
           {desktopUrl && (
-            <img
+            <Image
               src={desktopUrl}
-              alt=""
-              className={`w-full h-full object-cover ${hasDistinctMobile ? 'hidden md:block' : 'block'}`}
-              loading="lazy"
-              decoding="async"
+              alt={backgroundImage?.alt || 'Интерьер тату-студии Aurora & Ash'}
+              fill
+              priority={priority}
+              quality={85}
+              sizes="100vw"
+              className={`object-cover ${hasDistinctMobile ? 'hidden md:block' : 'block'}`}
             />
           )}
           {hasDistinctMobile && mobileUrl && (
-            <img
+            <Image
               src={mobileUrl}
-              alt=""
-              className="w-full h-full object-cover block md:hidden"
-              loading="lazy"
-              decoding="async"
+              alt={mobileImage?.alt || backgroundImage?.alt || 'Интерьер тату-студии Aurora & Ash'}
+              fill
+              priority={priority}
+              quality={85}
+              sizes="100vw"
+              className="object-cover block md:hidden"
             />
           )}
         </motion.div>
@@ -112,3 +119,4 @@ function resolveImageUrl(media: MediaDoc | null | undefined): string | null {
   if (!media || typeof media !== 'object') return null
   return media.sizes?.hero?.url ?? media.url ?? null
 }
+

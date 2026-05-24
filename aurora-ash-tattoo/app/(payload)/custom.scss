@@ -718,3 +718,95 @@
   border-bottom: 1px solid rgba(212, 175, 55, 0.2);
   color: #eaeaea;
 }
+
+/* ======================================================================
+   LEXICAL RICH TEXT EDITOR — Clean, isolated styling
+   ONE outer wrapper = ONE border. No inner borders, no nested shadows.
+   Matches the "Short bio" field — #141414 background, single #222 border,
+   gold border on :focus-within.
+   ====================================================================== */
+
+/* 1. Начисто сбрасываем все внутренние рамки и тени Payload */
+[data-theme='dark'] .payload__rich-text,
+[data-theme='dark'] .rich-text,
+[data-theme='dark'] .editor-container,
+[data-theme='dark'] .lexical-editor__editor,
+[data-theme='dark'] .rich-text__wrapper {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* 2. Оформляем строго ОДИН внешний контейнер поля */
+[data-theme='dark'] .field-wrapper.rich-text {
+  background-color: #141414 !important; /* Серый фон, как у Short bio */
+  border: 1px solid #222222 !important;  /* Одна аккуратная рамка */
+  border-radius: 4px !important;
+  padding: 1rem !important;               /* Отступы, чтобы текст не лип к краям */
+  transition: border-color 0.2s ease;
+}
+
+/* 3. Подсвечиваем золотом только эту ОДНУ внешнюю рамку при клике */
+[data-theme='dark'] .field-wrapper.rich-text:focus-within {
+  border-color: #D4AF37 !important;
+}
+
+/* ── Inner editor area — transparent, inherits from wrapper ── */
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__editor,
+[data-theme='dark'] .field-wrapper.rich-text .editor-shell,
+[data-theme='dark'] .field-wrapper.rich-text .editor-container,
+[data-theme='dark'] .field-wrapper.rich-text [class*='editor'] {
+  background-color: transparent !important;
+  color: #eaeaea;
+  font-size: 15px;
+  line-height: 1.7;
+  min-height: 120px;
+}
+
+/* ── Toolbar — clean, no double borders ── */
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__toolbar,
+[data-theme='dark'] .field-wrapper.rich-text .lexical-toolbar,
+[data-theme='dark'] .field-wrapper.rich-text .editor-toolbar {
+  background-color: #1a1a1a;
+  border: none;
+  border-bottom: 1px solid #222;
+  border-radius: 4px 4px 0 0;
+  padding: 6px 8px;
+}
+
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__toolbar button,
+[data-theme='dark'] .field-wrapper.rich-text .lexical-toolbar button,
+[data-theme='dark'] .field-wrapper.rich-text .editor-toolbar button {
+  background-color: transparent;
+  color: #cacaca;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 4px 8px;
+  transition: all 0.15s ease;
+}
+
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__toolbar button:hover,
+[data-theme='dark'] .field-wrapper.rich-text .lexical-toolbar button:hover,
+[data-theme='dark'] .field-wrapper.rich-text .editor-toolbar button:hover {
+  background-color: rgba(212, 175, 55, 0.1);
+  color: #d4af37;
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+/* ── Content styling inside editor ── */
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__editor a {
+  color: #d4af37;
+  text-decoration: underline;
+}
+
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__editor h1,
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__editor h2,
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__editor h3 {
+  color: #f4f4f4;
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__editor b,
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__editor strong {
+  color: #d4af37;
+}

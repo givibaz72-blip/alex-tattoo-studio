@@ -1,4 +1,6 @@
 import { RichText } from '@payloadcms/richtext-lexical/react'
+
+import ScrollAnimate from '../ui/ScrollAnimate'
 import type { ContentBlockData } from './types'
 
 interface Props {
@@ -29,10 +31,12 @@ export default function ContentBlock({ block }: Props) {
   const typographyClass = [FAMILY_CLASS[family] || '', SCALE_CLASS[scale] || ''].filter(Boolean).join(' ')
 
   return (
-    <section className={`${bgClass} text-[#D4AF37] py-20 md:py-24 px-6 md:px-10`}>
-      <div className={`max-w-3xl mx-auto aurora-richtext ${typographyClass}`}>
+    <section className={`${bgClass} text-[#D4AF37] pt-20 pb-12 md:pt-24 md:pb-16 px-6 md:px-10`}>
+      {/* ScrollAnimate wraps only the inner content div so the outer section
+          retains its full background coverage without layout shift. */}
+      <ScrollAnimate className={`max-w-3xl mx-auto aurora-richtext ${typographyClass} [&_p:last-child]:mb-0`}>
         <RichText data={block.body} />
-      </div>
+      </ScrollAnimate>
     </section>
   )
 }

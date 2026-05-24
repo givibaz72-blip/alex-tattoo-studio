@@ -16,29 +16,46 @@ interface Props {
  *
  * If a block carries a `sectionId`, we wrap it in a `<section id=...>` so the
  * homepage scroll-spy and in-page anchors can target it. ParallaxSection
- * already renders its own section[id], so we skip the outer wrap for that
- * block type to avoid nested IDs.
+ * renders its own `<section id=>`, so we skip the outer wrapper for parallax
+ * blocks to avoid nested IDs.
  */
 export default function BlockRenderer({ blocks }: Props) {
   if (!blocks || blocks.length === 0) return null
+
+  // Track whether we've already rendered the first parallax so we can pass
+  // priority={true} only to that one image — the LCP candidate on the page.
+  let firstParallaxSeen = false
 
   return (
     <>
       {blocks.map((block, idx) => {
         const key = block.id ?? `${block.blockType}-${idx}`
+
+        // ParallaxSection renders its own <section id=> and needs priority
+        // hint for LCP. Return early — no outer wrapper.
+        if (block.blockType === 'parallax') {
+          const isFirst = !firstParallaxSeen
+          firstParallaxSeen = true
+          return renderBlock(block, key, isFirst)
+        }
+
         const node = renderBlock(block, key)
         if (!node) return null
 
-        // ParallaxSection renders its own <section id=>. Other block types
-        // with a sectionId get wrapped so they participate in the in-page
-        // anchor / scroll-spy machinery.
-        if (block.blockType === 'parallax') return node
-
-        // When the previous block was a parallax, inject a gradient fade
-        // at the top of the next container so the parallax image dissolves
-        // smoothly instead of showing a hard seam (§14.1).
+        // When the previous block was a parallax, apply a CSS mask so the
+        // top edge of the next block fades in via transparency rather than
+        // a painted gradient — eliminates hard seams and colour banding (§14.1).
         const prevBlock = idx > 0 ? blocks[idx - 1] : null
         const prevWasParallax = prevBlock?.blockType === 'parallax'
+
+        const maskStyle = prevWasParallax
+          ? {
+              maskImage: 'linear-gradient(to bottom, transparent 0px, #000 120px)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, #000 120px)',
+              marginTop: '-80px',
+              zIndex: 10,
+            }
+          : undefined
 
         const sectionId = (block as any).sectionId as string | null | undefined
         if (sectionId) {
@@ -48,27 +65,18 @@ export default function BlockRenderer({ blocks }: Props) {
               id={sectionId}
               data-scroll-section
               className={`scroll-mt-[72px]${prevWasParallax ? ' relative' : ''}`}
+              style={maskStyle}
             >
-              {prevWasParallax && (
-                <div
-                  aria-hidden="true"
-                  className="absolute -top-32 md:-top-48 inset-x-0 h-32 md:h-48 bg-gradient-to-t from-neutral-950 to-transparent pointer-events-none z-20"
-                />
-              )}
               {node}
             </section>
           )
         }
 
         // Blocks without a sectionId that follow a parallax still need
-        // the transition gradient — wrap them in a relative container.
+        // the mask transition — wrap them in a relative container.
         if (prevWasParallax) {
           return (
-            <div key={key} className="relative">
-              <div
-                aria-hidden="true"
-                className="absolute -top-32 md:-top-48 inset-x-0 h-32 md:h-48 bg-gradient-to-t from-neutral-950 to-transparent pointer-events-none z-20"
-              />
+            <div key={key} className="relative" style={maskStyle}>
               {node}
             </div>
           )
@@ -80,7 +88,7 @@ export default function BlockRenderer({ blocks }: Props) {
   )
 }
 
-function renderBlock(block: PageBlock, key: string) {
+function renderBlock(block: PageBlock, key: string, priority = false) {
   switch (block.blockType) {
     case 'hero':
       return <HeroBlock key={key} block={block} />
@@ -93,7 +101,7 @@ function renderBlock(block: PageBlock, key: string) {
     case 'artistGrid':
       return <ArtistGrid key={key} block={block} />
     case 'parallax':
-      return <ParallaxSection key={key} block={block} />
+      return <ParallaxSection key={key} block={block} priority={priority} />
     case 'columns':
       return <ColumnsBlock key={key} block={block} />
     default:

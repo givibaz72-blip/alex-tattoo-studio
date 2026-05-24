@@ -26,10 +26,12 @@ const RESERVED_SLUGS = new Set([
 ])
 
 // Slugs whose content was merged into the homepage one-page scroll.
-// Visits to /about, /aftercare, /faq, /contact are permanently redirected
-// to the matching anchor on /. Old links keep working; SEO collapses to
-// the homepage as the canonical address.
-const MERGED_INTO_HOME = new Set(['about', 'studio', 'aftercare', 'faq', 'contact', 'location', 'artists'])
+// Visits to these slugs are permanently redirected to the matching anchor
+// on the homepage. `/contact` and `/artists` are NOT in this list — they
+// have their own standalone routes (a Make an appointment form, and a
+// permanent redirect to /#artists respectively) that take precedence over
+// this catch-all.
+const MERGED_INTO_HOME = new Set(['about', 'studio', 'aftercare', 'faq', 'location'])
 
 async function findPage(slug: string, draft: boolean) {
   const payload = await getPayload()
