@@ -25,7 +25,7 @@ export default async function FeaturedWorks() {
     console.error('[FeaturedWorks] failed to load works from Payload', err)
   }
 
-  // Не рендерим секцию, если нет ни одной работы с реальной картинкой
+  // Do not render the section if no featured work has a real image
   const hasImages = works.some(
     (w: any) =>
       Array.isArray(w.images) &&

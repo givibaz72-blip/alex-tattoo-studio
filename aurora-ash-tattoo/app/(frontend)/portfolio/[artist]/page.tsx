@@ -50,14 +50,44 @@ async function findWorks(artistId: string | number) {
   return res.docs
 }
 
+function resolveMediaUrl(media: any): string | undefined {
+  if (!media || typeof media !== 'object') return undefined
+  return (
+    media.sizes?.hero?.url ??
+    media.sizes?.feature?.url ??
+    media.sizes?.card?.url ??
+    media.url ??
+    undefined
+  )
+}
+
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { artist: slug } = await params
   try {
     const doc: any = await findArtist(slug, false)
     if (!doc) return { title: COPY.notFound }
+
+    const title = doc.seo?.title ?? `${doc.name} - Aurora & Ash`
+    const description = doc.seo?.description ?? doc.shortBio ?? undefined
+    const imageUrl =
+      resolveMediaUrl(doc.seo?.image) ?? resolveMediaUrl(doc.heroImage) ?? resolveMediaUrl(doc.portrait)
+    const imageAlt = doc.seo?.image?.alt ?? doc.heroImage?.alt ?? doc.portrait?.alt ?? doc.name
+
     return {
-      title: doc.seo?.title ?? `${doc.name} - Aurora & Ash`,
-      description: doc.seo?.description ?? doc.shortBio ?? undefined,
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        type: 'profile',
+        images: imageUrl ? [{ url: imageUrl, alt: imageAlt }] : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: imageUrl ? [imageUrl] : [],
+      },
     }
   } catch {
     return { title: slug }

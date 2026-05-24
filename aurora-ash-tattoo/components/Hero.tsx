@@ -16,30 +16,20 @@ type HeroMedia = {
 
 interface HeroProps {
   heroImage?: HeroMedia
-  locale?: 'en' | 'ru'
 }
 
 const COPY = {
-  en: {
-    eyebrow: 'Fine line · Blackwork · Ornamental',
-    tagline: 'Fine art for the body.',
-    primaryCta: 'Make an appointment',
-    secondaryCta: 'Meet the artists',
-    badge: 'Est. 2026 · By appointment · West Hollywood',
-  },
-  ru: {
-    eyebrow: 'Fine line · Blackwork · Орнамент',
-    tagline: 'Тонкое искусство для тела.',
-    primaryCta: 'Записаться на сеанс',
-    secondaryCta: 'Посмотреть артистов',
-    badge: 'С 2026 · Только по записи · West Hollywood',
-  },
-}
+  eyebrow: 'Fine line · Blackwork · Ornamental',
+  tagline: 'Fine art for the body.',
+  primaryCta: 'Make an appointment',
+  secondaryCta: 'Meet the artists',
+  badge: 'Est. 2026 · By appointment · West Hollywood',
+} as const
 
-const Hero = ({ heroImage, locale = 'en' }: HeroProps) => {
-  const t = COPY[locale]
-  const inquiryHref = locale === 'en' ? '/inquiry' : '/inquiry?locale=ru'
-  const teamHref = locale === 'en' ? '/#team' : '/?locale=ru#team'
+const Hero = ({ heroImage }: HeroProps) => {
+  const t = COPY
+  const inquiryHref = '/inquiry'
+  const teamHref = '/#team'
   // (Hero.tsx is a legacy component — the homepage now renders CMS blocks
   // via BlockRenderer + HeroBlock. Kept for backwards-compat with /[slug]
   // pages that opt in to the static hero.)

@@ -126,7 +126,7 @@ export default function ParallaxSection({ block, priority = false }: Props) {
           {desktopUrl && (
             <Image
               src={desktopUrl}
-              alt={resolveAlt(block.backgroundImage) || 'Интерьер тату-студии Aurora & Ash'}
+              alt={resolveAlt(block.backgroundImage) || 'Aurora & Ash tattoo studio interior'}
               fill
               priority={priority}
               quality={85}
@@ -139,7 +139,7 @@ export default function ParallaxSection({ block, priority = false }: Props) {
           {hasDistinctMobile && mobileUrl && (
             <Image
               src={mobileUrl}
-              alt={resolveAlt(block.mobileImage) || resolveAlt(block.backgroundImage) || 'Интерьер тату-студии Aurora & Ash'}
+              alt={resolveAlt(block.mobileImage) || resolveAlt(block.backgroundImage) || 'Aurora & Ash tattoo studio interior'}
               fill
               priority={priority}
               quality={85}

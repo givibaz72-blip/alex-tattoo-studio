@@ -58,7 +58,7 @@ export default function AboutParallax({ heading, body, backgroundImage, mobileIm
           {desktopUrl && (
             <Image
               src={desktopUrl}
-              alt={backgroundImage?.alt || 'Интерьер тату-студии Aurora & Ash'}
+              alt={backgroundImage?.alt || 'Aurora & Ash tattoo studio interior'}
               fill
               priority={priority}
               quality={85}
@@ -69,7 +69,7 @@ export default function AboutParallax({ heading, body, backgroundImage, mobileIm
           {hasDistinctMobile && mobileUrl && (
             <Image
               src={mobileUrl}
-              alt={mobileImage?.alt || backgroundImage?.alt || 'Интерьер тату-студии Aurora & Ash'}
+              alt={mobileImage?.alt || backgroundImage?.alt || 'Aurora & Ash tattoo studio interior'}
               fill
               priority={priority}
               quality={85}

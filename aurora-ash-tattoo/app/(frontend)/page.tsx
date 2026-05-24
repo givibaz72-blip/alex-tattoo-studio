@@ -21,10 +21,10 @@ export async function generateMetadata(): Promise<Metadata> {
     const settings = (await payload.findGlobal({ slug: 'siteSettings', depth: 1 })) as any
 
     return {
-      title: settings?.metaTitle || 'Aurora & Ash Tattoo | Эксклюзивная тату-студия',
+      title: settings?.metaTitle || 'Aurora & Ash Tattoo | Private Tattoo Studio',
       description:
         settings?.metaDescription ||
-        'Профессиональная тату-студия Aurora & Ash. Индивидуальные эскизы, опытные мастера, премиальное качество и полная безопасность.',
+        'Aurora & Ash is a private tattoo studio in West Hollywood focused on custom artwork, experienced artists, premium quality, and safe appointments.',
       openGraph: {
         title: settings?.metaTitle || 'Aurora & Ash Tattoo',
         description: settings?.metaDescription,
@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
     }
   } catch {
     return {
-      title: 'Aurora & Ash Tattoo | Эксклюзивная тату-студия',
+      title: 'Aurora & Ash Tattoo | Private Tattoo Studio',
     }
   }
 }
