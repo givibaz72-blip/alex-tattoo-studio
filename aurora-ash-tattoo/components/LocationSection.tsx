@@ -44,11 +44,12 @@ const FILTER_HOVER = 'grayscale(0.7) invert(0.92) contrast(0.85) brightness(0.88
 
 export default function LocationSection({
   address = DEFAULT_ADDRESS,
-  mapEmbedUrl = DEFAULT_EMBED_URL,
+  mapEmbedUrl,
   hours = DEFAULT_HOURS,
   phone = DEFAULT_PHONE,
 }: LocationSectionProps) {
   const [hover, setHover] = useState(false)
+  const safeMapEmbedUrl = mapEmbedUrl?.trim() || DEFAULT_EMBED_URL
   const telHref = `tel:${phone.replace(/[^+\d]/g, '')}`
 
   return (
@@ -90,7 +91,7 @@ export default function LocationSection({
           className="relative w-full h-[220px] md:h-[260px] overflow-hidden border border-[#D4AF37]/25 bg-black mb-6 transition-shadow duration-500 hover:shadow-[0_0_60px_rgba(212,175,55,0.18)]"
         >
           <iframe
-            src={mapEmbedUrl}
+            src={safeMapEmbedUrl}
             title="Aurora & Ash studio location — Google Maps"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"

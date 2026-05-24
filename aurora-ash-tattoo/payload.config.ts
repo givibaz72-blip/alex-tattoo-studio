@@ -871,9 +871,18 @@ export default buildConfig({
           },
         },
         // --- Studio info ------------------------------------------------
+        { name: 'studioName', type: 'text', label: 'Studio Name', defaultValue: 'Aurora & Ash Tattoo' },
         { name: 'phone', type: 'text', label: 'Phone' },
         { name: 'email', type: 'text', label: 'Email' },
         { name: 'address', type: 'textarea', localized: true, label: 'Address' },
+        {
+          name: 'mapEmbedUrl',
+          type: 'text',
+          label: 'Map Embed URL',
+          admin: {
+            description: 'Ссылка для iframe Яндекс/Google карт',
+          },
+        },
         { name: 'hours', type: 'text', label: 'Studio Hours', defaultValue: 'Mon-Sun: 12 PM — 8 PM (By Appointment Only)' },
         { name: 'social',
           type: 'group',

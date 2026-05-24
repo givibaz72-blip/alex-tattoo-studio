@@ -49,7 +49,10 @@ export default async function Home() {
   let heroImage: any = null
   let homeBlocks: PageBlock[] | null = null
   let studio: {
+    studioName?: string | null
+    metaDescription?: string | null
     address?: string | null
+    mapEmbedUrl?: string | null
     hours?: string | null
     phone?: string | null
   } = {}
@@ -59,7 +62,10 @@ export default async function Home() {
     const settings = (await payload.findGlobal({ slug: 'siteSettings', depth: 1 })) as any
     heroImage = settings?.heroImage ?? null
     studio = {
+      studioName: settings?.studioName ?? null,
+      metaDescription: settings?.metaDescription ?? null,
       address: settings?.address ?? null,
+      mapEmbedUrl: settings?.mapEmbedUrl ?? null,
       hours: settings?.hours ?? null,
       phone: settings?.phone ?? null,
     }
@@ -101,6 +107,11 @@ export default async function Home() {
   const addressLine = studio.address
     ? studio.address.replace(/\n/g, ' · ')
     : '8282 Santa Monica Blvd · West Hollywood, CA 90046'
+  const brandName = studio.studioName || 'Aurora & Ash Tattoo'
+  const schemaDescription =
+    studio.metaDescription ||
+    'Premium tattoo studio focused on custom art, safety, and private appointments.'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aurora-ash.tattoo'
 
   // ---------------------------------------------------------------------------
   // Structured data — JSON-LD (TattooParlor) for local SEO
@@ -108,16 +119,18 @@ export default async function Home() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'TattooParlor',
-    name: 'Aurora & Ash Tattoo',
-    description: 'Премиальная тату-студия с фокусом на индивидуальное искусство и безопасность.',
-    url: 'https://aurora-ash.tattoo',
-    logo: 'https://aurora-ash.tattoo/logo.png',
+    name: brandName,
+    description: schemaDescription,
+    url: siteUrl,
     address: {
       '@type': 'PostalAddress',
-      streetAddress: studio.address ?? 'Улица и дом студии',
-      addressLocality: 'Город',
-      addressCountry: 'RU',
+      streetAddress: studio.address ?? addressLine,
+      addressLocality: 'West Hollywood',
+      addressRegion: 'CA',
+      postalCode: '90046',
+      addressCountry: 'US',
     },
+    ...(studio.phone ? { telephone: studio.phone } : {}),
     openingHoursSpecification: {
       '@type': 'OpeningHoursSpecification',
       dayOfWeek: [
@@ -151,6 +164,7 @@ export default async function Home() {
             <BlockRenderer blocks={blocksBefore} />
             <LocationSection
               address={addressLine}
+              mapEmbedUrl={studio.mapEmbedUrl ?? undefined}
               hours={studio.hours ?? undefined}
               phone={studio.phone ?? undefined}
             />
@@ -159,7 +173,12 @@ export default async function Home() {
         ) : (
           <>
             <Hero heroImage={heroImage} />
-            <LocationSection />
+            <LocationSection
+              address={addressLine}
+              mapEmbedUrl={studio.mapEmbedUrl ?? undefined}
+              hours={studio.hours ?? undefined}
+              phone={studio.phone ?? undefined}
+            />
           </>
         )}
       </main>
