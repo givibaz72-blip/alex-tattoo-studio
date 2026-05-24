@@ -880,7 +880,8 @@ export default buildConfig({
           type: 'text',
           label: 'Map Embed URL',
           admin: {
-            description: 'Ссылка для iframe Яндекс/Google карт',
+            description:
+              'Paste a Google/Yandex embed iframe src URL. Full <iframe ...> snippets and regular Google Maps links are normalized automatically.',
           },
         },
         { name: 'hours', type: 'text', label: 'Studio Hours', defaultValue: 'Mon-Sun: 12 PM — 8 PM (By Appointment Only)' },

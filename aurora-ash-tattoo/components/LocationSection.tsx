@@ -33,7 +33,7 @@ interface LocationSectionProps {
 
 const DEFAULT_ADDRESS = '8282 Santa Monica Blvd · West Hollywood, CA 90046'
 const DEFAULT_EMBED_URL =
-  'https://www.google.com/maps?q=8282+Santa+Monica+Blvd,+West+Hollywood,+CA+90046&output=embed'
+  'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4065.69233176963!2d-118.37259442370754!3d34.090485315709!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c2beb884d7a495%3A0x4abda10eb14fc5f6!2s8282%20Santa%20Monica%20Blvd%2C%20West%20Hollywood%2C%20CA%2090046%2C%20%D0%A1%D0%A8%D0%90!5e1!3m2!1sru!2sru!4v1779624430736!5m2!1sru!2sru'
 const DEFAULT_HOURS = 'Mon — Sun · 12 PM — 8 PM · By appointment'
 const DEFAULT_PHONE = '+1 (323) 555-0190'
 
@@ -42,6 +42,60 @@ const DEFAULT_PHONE = '+1 (323) 555-0190'
 const FILTER_IDLE = 'grayscale(1) invert(0.92) contrast(0.9) brightness(0.8)'
 const FILTER_HOVER = 'grayscale(0.7) invert(0.92) contrast(0.85) brightness(0.88)'
 
+function toGoogleEmbedUrl(url: URL) {
+  const directQuery = url.searchParams.get('q')
+  if (directQuery) {
+    return `https://www.google.com/maps?q=${encodeURIComponent(directQuery)}&output=embed`
+  }
+
+  const pathPlaceOrSearch = url.pathname.match(/\/maps\/(?:place|search)\/([^/@]+)/i)?.[1]
+  if (pathPlaceOrSearch) {
+    const query = decodeURIComponent(pathPlaceOrSearch).replace(/\+/g, ' ')
+    return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`
+  }
+
+  const coordinates = url.pathname.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/)
+  if (coordinates) {
+    return `https://www.google.com/maps?q=${coordinates[1]},${coordinates[2]}&output=embed`
+  }
+
+  return `https://www.google.com/maps?q=${encodeURIComponent(url.toString())}&output=embed`
+}
+
+function resolveMapEmbedUrl(rawUrl?: string) {
+  const value = rawUrl?.trim()
+  if (!value) return DEFAULT_EMBED_URL
+
+  // Admins often paste the full Google/Yandex iframe snippet instead of only
+  // the src URL. Extract the src so we never put raw HTML into iframe.src.
+  const iframeSrc = value.match(/<iframe[^>]+src=["']([^"']+)["']/i)?.[1]
+  const candidate = (iframeSrc || value)
+    .replace(/&amp;/g, '&')
+    .replace(/&#38;/g, '&')
+    .trim()
+
+  try {
+    const url = new URL(candidate)
+    if (!['http:', 'https:'].includes(url.protocol)) return DEFAULT_EMBED_URL
+
+    const host = url.hostname.toLowerCase()
+    const isGoogleMaps =
+      host === 'maps.app.goo.gl' ||
+      host === 'goo.gl' ||
+      (host.includes('google.') && url.pathname.includes('/maps'))
+
+    // Regular Google Maps share/place/search links are valid URLs, but they are
+    // not always embeddable as iframe.src. Convert them to a stable embed URL.
+    if (isGoogleMaps && !url.pathname.includes('/maps/embed') && url.searchParams.get('output') !== 'embed') {
+      return toGoogleEmbedUrl(url)
+    }
+
+    return url.toString()
+  } catch {
+    return DEFAULT_EMBED_URL
+  }
+}
+
 export default function LocationSection({
   address = DEFAULT_ADDRESS,
   mapEmbedUrl,
@@ -49,7 +103,7 @@ export default function LocationSection({
   phone = DEFAULT_PHONE,
 }: LocationSectionProps) {
   const [hover, setHover] = useState(false)
-  const safeMapEmbedUrl = mapEmbedUrl?.trim() || DEFAULT_EMBED_URL
+  const safeMapEmbedUrl = resolveMapEmbedUrl(mapEmbedUrl)
   const telHref = `tel:${phone.replace(/[^+\d]/g, '')}`
 
   return (
