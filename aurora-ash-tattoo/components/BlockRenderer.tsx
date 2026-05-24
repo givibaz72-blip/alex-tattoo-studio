@@ -22,9 +22,9 @@ interface Props {
 export default function BlockRenderer({ blocks }: Props) {
   if (!blocks || blocks.length === 0) return null
 
-  // Track whether we've already rendered the first parallax so we can pass
-  // priority={true} only to that one image — the LCP candidate on the page.
-  let firstParallaxSeen = false
+  // Find the first parallax up front so render stays pure: no local variable
+  // mutation inside the map callback, which React Compiler flags correctly.
+  const firstParallaxIndex = blocks.findIndex((block) => block.blockType === 'parallax')
 
   return (
     <>
@@ -34,9 +34,7 @@ export default function BlockRenderer({ blocks }: Props) {
         // ParallaxSection renders its own <section id=> and needs priority
         // hint for LCP. Return early — no outer wrapper.
         if (block.blockType === 'parallax') {
-          const isFirst = !firstParallaxSeen
-          firstParallaxSeen = true
-          return renderBlock(block, key, isFirst)
+          return renderBlock(block, key, idx === firstParallaxIndex)
         }
 
         const node = renderBlock(block, key)

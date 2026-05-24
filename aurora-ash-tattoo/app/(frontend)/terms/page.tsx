@@ -99,7 +99,7 @@ export default function TermsPage() {
 
           <p className="text-[#D4AF37]/75 text-base md:text-lg leading-relaxed mb-14">
             These terms govern bookings made with Aurora &amp; Ash Tattoo Studio
-            LLC ("the studio") at our West Hollywood location. By submitting an
+            LLC (&quot;the studio&quot;) at our West Hollywood location. By submitting an
             inquiry or booking an appointment you agree to the following policies.
           </p>
 

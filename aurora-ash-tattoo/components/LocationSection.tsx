@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 
 /**
@@ -129,12 +130,12 @@ export default function LocationSection({
         {/* Hairline separator + small CTA back to inquiry */}
         <div className="mt-8 flex flex-col items-center gap-4">
           <span aria-hidden="true" className="block w-12 h-px bg-[#D4AF37]/30" />
-          <a
+          <Link
             href="/inquiry"
             className="inline-flex items-center min-h-11 px-6 py-3 border border-[#D4AF37]/55 text-[11px] tracking-[0.28em] uppercase text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-colors"
           >
             Make an appointment
-          </a>
+          </Link>
         </div>
       </div>
     </section>
