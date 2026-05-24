@@ -1,6 +1,7 @@
 'use client'
 
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
+import Image from 'next/image'
 import Link from 'next/link'
 
 import type { MediaDoc } from '../MediaImage'
@@ -49,7 +50,14 @@ export default function HeroBlock({ block }: Props) {
           style={reduceMotion ? {} : { y, willChange: 'transform', transform: 'translateZ(0)' }}
           className="fixed -top-[15vh] left-0 w-full h-[130vh] -z-10 pointer-events-none"
         >
-          <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+          <Image
+            src={imageUrl}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
         </motion.div>
       )}
 
