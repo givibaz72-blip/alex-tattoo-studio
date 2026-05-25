@@ -2,7 +2,7 @@ import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { en } from '@payloadcms/translations/languages/en'
 import path from 'path'
-import { buildConfig } from 'payload'
+import { APIError, buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 
 import {
@@ -19,6 +19,11 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+const MAX_MEDIA_UPLOAD_SIZE_BYTES = 8 * 1024 * 1024
+const MAX_MEDIA_UPLOAD_SIZE_LABEL = '8 MB'
+const PUBLIC_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif']
+const ADMIN_ONLY_IMAGE_MIME_TYPES = ['image/svg+xml']
+const MEDIA_UPLOAD_MIME_TYPES = [...PUBLIC_IMAGE_MIME_TYPES, ...ADMIN_ONLY_IMAGE_MIME_TYPES]
 
 export default buildConfig({
   admin: {
@@ -60,6 +65,17 @@ export default buildConfig({
     ],
     defaultLocale: 'en',
     fallback: true,
+  },
+
+  upload: {
+    abortOnLimit: true,
+    limits: { fileSize: MAX_MEDIA_UPLOAD_SIZE_BYTES },
+    preserveExtension: true,
+    responseOnLimit: `Image uploads are limited to ${MAX_MEDIA_UPLOAD_SIZE_LABEL}. Please export a smaller JPG, PNG, WebP, or AVIF file.`,
+    safeFileNames: true,
+    tempFileDir: '/tmp/payload-uploads',
+    uploadTimeout: 120_000,
+    useTempFiles: true,
   },
 
   collections: [
@@ -110,7 +126,12 @@ export default buildConfig({
     {
       slug: 'media',
       labels: { singular: 'Media file', plural: 'Media library' },
-      admin: { group: 'Library', defaultColumns: ['filename', 'alt', 'uploadedBy', 'updatedAt'] },
+      admin: {
+        group: 'Library',
+        defaultColumns: ['filename', 'alt', 'uploadedBy', 'filesize', 'updatedAt'],
+        description:
+          'Images are automatically resized and compressed. Artists should upload JPG, PNG, WebP, or AVIF files up to 8 MB; SVG is reserved for admins only.',
+      },
       access: {
         // Public read so the frontend can serve images.
         read: () => true,
@@ -122,6 +143,33 @@ export default buildConfig({
       hooks: {
         beforeChange: [
           ({ req, data, operation }) => {
+            const file = req.file
+            const userRole = (req.user as any)?.role
+
+            if (file) {
+              if (file.size > MAX_MEDIA_UPLOAD_SIZE_BYTES) {
+                throw new APIError(
+                  `Image uploads are limited to ${MAX_MEDIA_UPLOAD_SIZE_LABEL}. Please export a smaller JPG, PNG, WebP, or AVIF file.`,
+                  413,
+                  null,
+                  true,
+                )
+              }
+
+              if (!MEDIA_UPLOAD_MIME_TYPES.includes(file.mimetype)) {
+                throw new APIError(
+                  'Unsupported image format. Please upload JPG, PNG, WebP, or AVIF.',
+                  400,
+                  null,
+                  true,
+                )
+              }
+
+              if (ADMIN_ONLY_IMAGE_MIME_TYPES.includes(file.mimetype) && userRole !== 'admin') {
+                throw new APIError('SVG uploads are restricted to studio admins.', 403, null, true)
+              }
+            }
+
             if (operation === 'create' && req.user && !data.uploadedBy) {
               return { ...data, uploadedBy: req.user.id }
             }
@@ -131,12 +179,50 @@ export default buildConfig({
       },
       upload: {
         staticDir: path.resolve(dirname, 'public/media'),
-        mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/svg+xml'],
+        adminThumbnail: 'thumbnail',
+        crop: true,
+        displayPreview: true,
+        focalPoint: true,
+        mimeTypes: MEDIA_UPLOAD_MIME_TYPES,
+        pasteURL: false,
+        resizeOptions: {
+          width: 2560,
+          height: 2560,
+          fit: 'inside',
+          withoutEnlargement: true,
+        },
+        formatOptions: {
+          format: 'webp',
+          options: { quality: 82, effort: 4 },
+        },
+        withMetadata: false,
         imageSizes: [
-          { name: 'thumbnail', width: 400, height: 400, position: 'centre' },
-          { name: 'card', width: 800 },
-          { name: 'feature', width: 1200 },
-          { name: 'hero', width: 1920 },
+          {
+            name: 'thumbnail',
+            width: 400,
+            height: 400,
+            position: 'centre',
+            withoutEnlargement: true,
+            formatOptions: { format: 'webp', options: { quality: 76, effort: 4 } },
+          },
+          {
+            name: 'card',
+            width: 800,
+            withoutEnlargement: true,
+            formatOptions: { format: 'webp', options: { quality: 78, effort: 4 } },
+          },
+          {
+            name: 'feature',
+            width: 1200,
+            withoutEnlargement: true,
+            formatOptions: { format: 'webp', options: { quality: 80, effort: 4 } },
+          },
+          {
+            name: 'hero',
+            width: 1920,
+            withoutEnlargement: true,
+            formatOptions: { format: 'webp', options: { quality: 82, effort: 4 } },
+          },
         ],
       },
       fields: [
