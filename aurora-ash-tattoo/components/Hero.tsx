@@ -49,6 +49,7 @@ const Hero = ({ heroImage }: HeroProps) => {
         desktopAlt={heroImage?.alt ?? ''}
         priority
         imageClassName="opacity-50"
+        edgeColor="#121212"
       />
       {bgUrl ? (
         <>
