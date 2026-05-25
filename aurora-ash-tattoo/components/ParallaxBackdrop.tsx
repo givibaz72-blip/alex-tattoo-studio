@@ -3,6 +3,7 @@
 import type { RefObject } from 'react'
 import Image from 'next/image'
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { useIsMobile } from '../lib/useIsMobile'
 
 interface Props {
   targetRef: RefObject<HTMLElement | null>
@@ -18,9 +19,10 @@ interface Props {
 /**
  * Shared parallax backdrop for all site parallax sections.
  *
- * Uses an oversized absolute layer inside the section instead of
- * `position: fixed` + `clip-path`. That keeps every parallax block on the same
- * rendering path and avoids 1px compositing seams at the top/bottom edges.
+ * Uses one shared viewport-fixed layer clipped by the section. The fixed layer
+ * gives visible parallax even when scroll-driven transforms are subtle, while
+ * generous vertical overscan keeps the image from exposing page background at
+ * section edges.
  */
 export default function ParallaxBackdrop({
   targetRef,
@@ -33,15 +35,18 @@ export default function ParallaxBackdrop({
   imageClassName = '',
 }: Props) {
   const reduceMotion = useReducedMotion()
+  const isMobile = useIsMobile()
   const { scrollYProgress } = useScroll({
     target: targetRef,
     offset: ['start end', 'end start'],
   })
 
-  // Percentage travel is relative to the oversized backdrop layer. The layer
-  // extends 25% beyond both section edges, while movement is only ±8%, so the
-  // image can never expose the underlying page background during scroll.
-  const y = useTransform(scrollYProgress, [0, 1], ['8%', '-8%'])
+  // Fixed viewport layer creates the actual "window over a background" parallax.
+  // The scroll transform adds a small lag on top; if client JS has not hydrated
+  // yet, the fixed layer still keeps the parallax effect visible instead of
+  // degrading to a plain static absolute background.
+  const travel = isMobile ? '5vh' : '18vh'
+  const y = useTransform(scrollYProgress, [0, 1], [travel, `-${travel}`])
 
   if (!desktopUrl && !mobileUrl) return null
 
@@ -50,8 +55,8 @@ export default function ParallaxBackdrop({
   return (
     <motion.div
       aria-hidden="true"
-      style={reduceMotion ? {} : { y, willChange: 'transform', transform: 'translateZ(0)' }}
-      className="absolute -top-[25%] left-0 z-0 h-[150%] w-full pointer-events-none bg-[#0a0a0a]"
+      style={reduceMotion ? {} : { y, willChange: 'transform' }}
+      className="fixed -top-[8vh] left-0 z-0 h-[116vh] w-full pointer-events-none bg-[#0a0a0a] md:-top-[25vh] md:h-[150vh]"
     >
       {desktopUrl ? (
         <Image

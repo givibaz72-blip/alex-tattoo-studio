@@ -42,7 +42,7 @@ const Hero = ({ heroImage }: HeroProps) => {
     null
 
   return (
-    <section ref={sectionRef} className="relative w-full min-h-screen overflow-hidden bg-[#121212] text-[#D4AF37] flex items-center justify-center">
+    <section ref={sectionRef} className="relative w-full min-h-screen overflow-hidden [clip-path:inset(0)] bg-[#121212] text-[#D4AF37] flex items-center justify-center">
       <ParallaxBackdrop
         targetRef={sectionRef}
         desktopUrl={bgUrl}

@@ -62,11 +62,11 @@ const HEIGHT_CLASS = {
 /**
  * Parallax section block.
  *
- * Uses the shared `<ParallaxBackdrop>` implementation with subtle parallax:
- *  - Image lives in an oversized absolute layer inside the section.
- *  - A y-transform tied to scrollYProgress creates gentle "lag" as the
+ * Uses the shared `<ParallaxBackdrop>` implementation with visible parallax:
+ *  - Image lives in one shared viewport-fixed layer clipped by the section.
+ *  - A y-transform tied to scrollYProgress adds gentle "lag" as the
  *    section moves past the viewing window.
- *  - The section uses `overflow-hidden`, avoiding fixed-layer/clip-path seams.
+ *  - The section uses `clip-path: inset(0)` to frame the fixed layer consistently.
  *
  * Art direction (§14.1):
  *  - Editors can attach `mobileImage` in the CMS — a portrait crop shown
@@ -98,7 +98,7 @@ export default function ParallaxSection({ block, priority = false }: Props) {
     <section
       ref={sectionRef}
       id={sectionId}
-      className={`relative z-10 w-full ${heightClass} overflow-hidden bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center scroll-mt-[72px]`}
+      className={`relative z-10 w-full ${heightClass} overflow-hidden [clip-path:inset(0)] bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center scroll-mt-[72px]`}
     >
       <ParallaxBackdrop
         targetRef={sectionRef}
