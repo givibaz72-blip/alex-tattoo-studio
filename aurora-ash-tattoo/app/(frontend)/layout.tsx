@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     template: '%s — Aurora & Ash',
   },
   description:
-    'A private, appointment-only tattoo studio on La Cienega Blvd. Five resident artists: Neo-Traditional, Japanese Irezumi, Fine Line, Blackwork, hand-drawn Lettering.',
+    'Aurora & Ash is a private, appointment-only tattoo studio in West Hollywood on La Cienega Blvd, specializing in Neo-Traditional, Japanese Irezumi, Fine Line, Blackwork, and hand-drawn Lettering.',
   applicationName: 'Aurora & Ash',
   alternates: { canonical: '/' },
   openGraph: {
