@@ -1,9 +1,9 @@
 'use client'
 
-import React from 'react'
-import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
-import Image from 'next/image'
+import React, { useRef } from 'react'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
+import ParallaxBackdrop from './ParallaxBackdrop'
 
 type MediaSize = { url?: string | null; width?: number | null; height?: number | null }
 type HeroMedia = {
@@ -27,6 +27,7 @@ const COPY = {
 } as const
 
 const Hero = ({ heroImage }: HeroProps) => {
+  const sectionRef = useRef<HTMLElement>(null)
   const t = COPY
   const inquiryHref = '/inquiry'
   const teamHref = '/#team'
@@ -40,29 +41,20 @@ const Hero = ({ heroImage }: HeroProps) => {
     heroImage?.url ||
     null
 
-  const reduceMotion = useReducedMotion()
-  const { scrollYProgress } = useScroll({ offset: ['start end', 'end start'] })
-  const y = useTransform(scrollYProgress, [0, 1], ['0vh', '-10vh'])
-
   return (
-    <section className="relative w-full min-h-screen [clip-path:inset(0)] bg-[#121212] text-[#D4AF37] flex items-center justify-center overflow-hidden">
+    <section ref={sectionRef} className="relative w-full min-h-screen overflow-hidden bg-[#121212] text-[#D4AF37] flex items-center justify-center">
+      <ParallaxBackdrop
+        targetRef={sectionRef}
+        desktopUrl={bgUrl}
+        desktopAlt={heroImage?.alt ?? ''}
+        priority
+        imageClassName="opacity-50"
+      />
       {bgUrl ? (
-        <motion.div
-          aria-hidden="true"
-          style={reduceMotion ? {} : { y, willChange: 'transform', transform: 'translateZ(0)' }}
-          className="fixed -top-[10vh] left-0 w-full h-[120vh] -z-10 pointer-events-none"
-        >
-          <Image
-            src={bgUrl}
-            alt={heroImage?.alt ?? ''}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover opacity-50"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#121212]/30 via-[#121212]/55 to-[#121212]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(18,18,18,0.4)_100%)]" />
-        </motion.div>
+        <>
+          <div aria-hidden="true" className="absolute inset-0 z-10 bg-gradient-to-b from-[#121212]/30 via-[#121212]/55 to-[#121212]" />
+          <div aria-hidden="true" className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(18,18,18,0.4)_100%)]" />
+        </>
       ) : null}
 
       <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto px-6">

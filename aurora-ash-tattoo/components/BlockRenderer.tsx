@@ -40,43 +40,12 @@ export default function BlockRenderer({ blocks }: Props) {
         const node = renderBlock(block, key)
         if (!node) return null
 
-        // When the previous block was a parallax, apply a CSS mask so the
-        // top edge of the next block fades in via transparency rather than
-        // a painted gradient — eliminates hard seams and colour banding (§14.1).
-        const prevBlock = idx > 0 ? blocks[idx - 1] : null
-        const prevWasParallax = prevBlock?.blockType === 'parallax'
-
-        const maskStyle = prevWasParallax
-          ? {
-              maskImage: 'linear-gradient(to bottom, transparent 0px, #000 120px)',
-              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, #000 120px)',
-              marginTop: '-80px',
-              zIndex: 10,
-            }
-          : undefined
-
         const sectionId = (block as any).sectionId as string | null | undefined
         if (sectionId) {
           return (
-            <section
-              key={key}
-              id={sectionId}
-              data-scroll-section
-              className={`scroll-mt-[72px]${prevWasParallax ? ' relative' : ''}`}
-              style={maskStyle}
-            >
+            <section key={key} id={sectionId} data-scroll-section className="scroll-mt-[72px]">
               {node}
             </section>
-          )
-        }
-
-        // Blocks without a sectionId that follow a parallax still need
-        // the mask transition — wrap them in a relative container.
-        if (prevWasParallax) {
-          return (
-            <div key={key} className="relative" style={maskStyle}>
-              {node}
-            </div>
           )
         }
 

@@ -1,12 +1,12 @@
 'use client'
 
 import { useRef } from 'react'
-import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
-import Image from 'next/image'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 
 import type { MediaDoc } from '../MediaImage'
 import type { HeroBlockData } from './types'
+import ParallaxBackdrop from '../ParallaxBackdrop'
 
 interface Props {
   block: HeroBlockData
@@ -15,64 +15,32 @@ interface Props {
 /**
  * Hero block with parallax background.
  *
- * Uses "Clip-Path Window" technique:
- * - The image is fixed to the viewport (locked in place)
- * - A subtle y transform creates gentle "lag" as you scroll
- * - The parent section's clip-path creates the viewing window
+ * Uses the shared `<ParallaxBackdrop>` implementation:
+ * - The image lives in an oversized absolute layer inside the section.
+ * - A subtle y transform creates gentle "lag" as you scroll.
+ * - The section uses `overflow-hidden`, avoiding fixed-layer/clip-path seams.
  *
  * Respects `prefers-reduced-motion` - in that case the image stays static.
  */
 export default function HeroBlock({ block }: Props) {
   const sectionRef = useRef<HTMLElement>(null)
-  const reduceMotion = useReducedMotion()
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start end', 'end start'],
-  })
-
-  // Counter-scroll with extra overscan to avoid fractional-pixel seams.
-  const y = useTransform(scrollYProgress, [0, 1], ['18vh', '-18vh'])
 
   const media = block.backgroundImage
   const imageUrl =
     media && typeof media === 'object'
-      ? ((media as MediaDoc).sizes?.hero?.url ?? (media as MediaDoc).url)
+      ? ((media as MediaDoc).sizes?.hero?.url ?? (media as MediaDoc).url ?? null)
       : null
 
   return (
     <section
       ref={sectionRef}
-      // The "window" - clip-path creates the viewing frame
-      className="relative w-full min-h-screen [clip-path:inset(0)] bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center overflow-hidden"
+      className="relative w-full min-h-screen overflow-hidden bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center"
     >
-      {imageUrl && (
-        // Fixed canvas with generous overscan. This prevents 1px seams from
-        // appearing when the transformed image lands on fractional pixels.
-        <motion.div
-          aria-hidden="true"
-          style={reduceMotion ? {} : { y, willChange: 'transform', transform: 'translateZ(0)' }}
-          className="fixed -top-[25vh] left-0 w-full h-[150vh] -z-10 pointer-events-none"
-        >
-          <Image
-            src={imageUrl}
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover scale-[1.08]"
-          />
-        </motion.div>
-      )}
-
-      {/* Edge masks hide sub-pixel compositing seams at the parallax window. */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 z-20 h-4 pointer-events-none bg-gradient-to-b from-[#0a0a0a] to-transparent"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 bottom-0 z-20 h-4 pointer-events-none bg-gradient-to-t from-[#0a0a0a] to-transparent"
+      <ParallaxBackdrop
+        targetRef={sectionRef}
+        desktopUrl={imageUrl}
+        desktopAlt=""
+        priority
       />
 
       {/* Dark wash overlay */}

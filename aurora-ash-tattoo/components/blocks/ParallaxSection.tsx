@@ -1,12 +1,11 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import Image from 'next/image'
-import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
 
 import type { MediaDoc } from '../MediaImage'
 import type { ParallaxBlockData } from './types'
-import { useIsMobile } from '../../lib/useIsMobile'
+import ParallaxBackdrop from '../ParallaxBackdrop'
 
 /**
  * Generates a genuine uniform random noise texture via Canvas API.
@@ -63,11 +62,11 @@ const HEIGHT_CLASS = {
 /**
  * Parallax section block.
  *
- * Uses "Clip-Path Window" technique with subtle parallax:
- *  - Image is fixed to the viewport (locked in place).
+ * Uses the shared `<ParallaxBackdrop>` implementation with subtle parallax:
+ *  - Image lives in an oversized absolute layer inside the section.
  *  - A y-transform tied to scrollYProgress creates gentle "lag" as the
  *    section moves past the viewing window.
- *  - The parent section's `clip-path: inset(0)` frames the window.
+ *  - The section uses `overflow-hidden`, avoiding fixed-layer/clip-path seams.
  *
  * Art direction (§14.1):
  *  - Editors can attach `mobileImage` in the CMS — a portrait crop shown
@@ -81,27 +80,8 @@ const HEIGHT_CLASS = {
  */
 export default function ParallaxSection({ block, priority = false }: Props) {
   const sectionRef = useRef<HTMLElement>(null)
-  const reduceMotion = useReducedMotion()
-  const isMobile = useIsMobile()
   // True white noise generated on the client — eliminates gradient banding
   const noiseUrl = useCanvasNoise(128)
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start end', 'end start'],
-  })
-
-  // Scale the parallax amplitude on mobile: 15vh → 5vh. Keeps depth cue
-  // without stretching the vertical crop or dragging frame-rate down.
-  const travel = isMobile ? '5vh' : '18vh'
-  const negTravel = isMobile ? '-5vh' : '-18vh'
-  const y = useTransform(scrollYProgress, [0, 1], [travel, negTravel])
-
-  // Fixed canvas height needs to accommodate the full travel. Keep generous
-  // overscan so fractional-pixel rounding during GPU compositing never exposes
-  // the page/section background as a 1px white seam at the top/bottom edge.
-  const canvasOffset = isMobile ? '-top-[8vh]' : '-top-[25vh]'
-  const canvasHeight = isMobile ? 'h-[116vh]' : 'h-[150vh]'
 
   const overlay = clamp(block.overlayIntensity ?? 0.55, 0, 0.95)
   const heightClass = HEIGHT_CLASS[block.height ?? 'screen'] ?? HEIGHT_CLASS.screen
@@ -118,51 +98,16 @@ export default function ParallaxSection({ block, priority = false }: Props) {
     <section
       ref={sectionRef}
       id={sectionId}
-      className={`relative z-10 w-full ${heightClass} [clip-path:inset(0)] bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center scroll-mt-[72px]`}
+      className={`relative z-10 w-full ${heightClass} overflow-hidden bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center scroll-mt-[72px]`}
     >
-      {(desktopUrl || mobileUrl) && (
-        <motion.div
-          aria-hidden="true"
-          style={reduceMotion ? {} : { y, willChange: 'transform', transform: 'translateZ(0)' }}
-          className={`fixed ${canvasOffset} left-0 w-full ${canvasHeight} z-0 pointer-events-none bg-[#0a0a0a]`}
-        >
-          {/* Desktop image — hidden on phones to skip the bandwidth. */}
-          {desktopUrl && (
-            <Image
-              src={desktopUrl}
-              alt={resolveAlt(block.backgroundImage) || 'Aurora & Ash tattoo studio interior'}
-              fill
-              priority={priority}
-              quality={85}
-              sizes="100vw"
-              className={`object-cover scale-[1.28] ${hasDistinctMobile ? 'hidden md:block' : 'block'}`}
-            />
-          )}
-          {/* Mobile-only portrait crop. Always object-cover so the same DOM
-              behaves for both vertical phones and rotated devices. */}
-          {hasDistinctMobile && mobileUrl && (
-            <Image
-              src={mobileUrl}
-              alt={resolveAlt(block.mobileImage) || resolveAlt(block.backgroundImage) || 'Aurora & Ash tattoo studio interior'}
-              fill
-              priority={priority}
-              quality={85}
-              sizes="100vw"
-              className="object-cover scale-[1.28] block md:hidden"
-            />
-          )}
-        </motion.div>
-      )}
-
-      {/* Edge masks hide browser sub-pixel compositing seams that can appear
-          where fixed parallax layers meet neighbouring sections during scroll. */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 z-30 h-4 pointer-events-none bg-gradient-to-b from-[#0a0a0a] to-transparent"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 bottom-0 z-30 h-4 pointer-events-none bg-gradient-to-t from-[#0a0a0a] to-transparent"
+      <ParallaxBackdrop
+        targetRef={sectionRef}
+        desktopUrl={desktopUrl}
+        mobileUrl={mobileUrl}
+        desktopAlt={resolveAlt(block.backgroundImage) || 'Aurora & Ash tattoo studio interior'}
+        mobileAlt={resolveAlt(block.mobileImage) || resolveAlt(block.backgroundImage) || 'Aurora & Ash tattoo studio interior'}
+        hasDistinctMobile={hasDistinctMobile}
+        priority={priority}
       />
 
       {/*
