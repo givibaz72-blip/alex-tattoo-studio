@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -22,14 +23,16 @@ interface Props {
  * Respects `prefers-reduced-motion` - in that case the image stays static.
  */
 export default function HeroBlock({ block }: Props) {
+  const sectionRef = useRef<HTMLElement>(null)
   const reduceMotion = useReducedMotion()
 
   const { scrollYProgress } = useScroll({
+    target: sectionRef,
     offset: ['start end', 'end start'],
   })
 
-  // Counter-scroll: image moves UP 15vh while we scroll through the section
-  const y = useTransform(scrollYProgress, [0, 1], ['15vh', '-15vh'])
+  // Counter-scroll with extra overscan to avoid fractional-pixel seams.
+  const y = useTransform(scrollYProgress, [0, 1], ['18vh', '-18vh'])
 
   const media = block.backgroundImage
   const imageUrl =
@@ -39,16 +42,17 @@ export default function HeroBlock({ block }: Props) {
 
   return (
     <section
+      ref={sectionRef}
       // The "window" - clip-path creates the viewing frame
       className="relative w-full min-h-screen [clip-path:inset(0)] bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center overflow-hidden"
     >
       {imageUrl && (
-        // Fixed canvas with parallax - h-[130vh] accommodates 30vh movement
-        // will-change + translateZ(0) for 60fps on mobile
+        // Fixed canvas with generous overscan. This prevents 1px seams from
+        // appearing when the transformed image lands on fractional pixels.
         <motion.div
           aria-hidden="true"
           style={reduceMotion ? {} : { y, willChange: 'transform', transform: 'translateZ(0)' }}
-          className="fixed -top-[15vh] left-0 w-full h-[130vh] -z-10 pointer-events-none"
+          className="fixed -top-[25vh] left-0 w-full h-[150vh] -z-10 pointer-events-none"
         >
           <Image
             src={imageUrl}
@@ -56,10 +60,20 @@ export default function HeroBlock({ block }: Props) {
             fill
             priority
             sizes="100vw"
-            className="object-cover"
+            className="object-cover scale-[1.08]"
           />
         </motion.div>
       )}
+
+      {/* Edge masks hide sub-pixel compositing seams at the parallax window. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 z-20 h-4 pointer-events-none bg-gradient-to-b from-[#0a0a0a] to-transparent"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 z-20 h-4 pointer-events-none bg-gradient-to-t from-[#0a0a0a] to-transparent"
+      />
 
       {/* Dark wash overlay */}
       <div
