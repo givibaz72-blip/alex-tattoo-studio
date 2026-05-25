@@ -8,7 +8,7 @@ import { useState } from 'react'
  * adapted to the Aurora & Ash gold-on-charcoal palette.
  *
  * Visual contract:
- *  - Deep black background with corner ticks.
+ *  - Deep black background without a decorative outer frame.
  *  - Large serif uppercase "LOCATION" heading with wide tracking.
  *  - Centered Google Maps iframe inside max-w-4xl figure with a CSS filter
  *    pipeline that turns the default tiles into a near-black plate: grayscale
@@ -111,20 +111,8 @@ export default function LocationSection({
       id="location"
       data-scroll-section
       aria-labelledby="location-heading"
-      className="relative bg-[#0a0a0a] text-[#D4AF37] min-h-[calc(100vh-5rem)] flex flex-col justify-center py-10 md:py-12 px-6 md:px-10 scroll-mt-20 border-y border-[#D4AF37]/10"
+      className="relative bg-[#0a0a0a] text-[#D4AF37] min-h-[calc(100vh-5rem)] flex flex-col justify-center py-10 md:py-12 px-6 md:px-10 scroll-mt-20"
     >
-      {/* Faint gold corner ticks — frame the section without being heavy. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <span className="absolute top-6 md:top-8 left-6 md:left-8 block w-8 h-px bg-[#D4AF37]/30" />
-        <span className="absolute top-6 md:top-8 left-6 md:left-8 block w-px h-8 bg-[#D4AF37]/30" />
-        <span className="absolute top-6 md:top-8 right-6 md:right-8 block w-8 h-px bg-[#D4AF37]/30" />
-        <span className="absolute top-6 md:top-8 right-6 md:right-8 block w-px h-8 bg-[#D4AF37]/30" />
-        <span className="absolute bottom-6 md:bottom-8 left-6 md:left-8 block w-8 h-px bg-[#D4AF37]/30" />
-        <span className="absolute bottom-6 md:bottom-8 left-6 md:left-8 block w-px h-8 bg-[#D4AF37]/30" />
-        <span className="absolute bottom-6 md:bottom-8 right-6 md:right-8 block w-8 h-px bg-[#D4AF37]/30" />
-        <span className="absolute bottom-6 md:bottom-8 right-6 md:right-8 block w-px h-8 bg-[#D4AF37]/30" />
-      </div>
-
       <div className="max-w-4xl mx-auto text-center relative z-10">
         <p className="label-line text-[#D4AF37]/55 mb-6">Visit the studio</p>
 
