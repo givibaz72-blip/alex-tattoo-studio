@@ -175,6 +175,7 @@ export default function NavMenu({ artists, studio }: Props) {
 
   const activeKey = useMemo<string | null>(() => {
     if (pathname === '/inquiry') return 'inquiry'
+    if (pathname === '/contact') return 'contact'
     if (pathname.startsWith('/portfolio')) return 'artists'
     if (!isHome) return null
     if (activeSection) return activeSection
@@ -363,7 +364,7 @@ export default function NavMenu({ artists, studio }: Props) {
 
                 <motion.li variants={itemVariants}>
                   <Link
-                    href={anchorHref('contact')}
+                    href="/contact"
                     onClick={closeMenu}
                     className={menuLinkClass(activeKey === 'contact')}
                   >
