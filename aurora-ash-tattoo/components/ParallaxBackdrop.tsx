@@ -1,6 +1,7 @@
 'use client'
 
-import type { RefObject } from 'react'
+import { useEffect, useState, type RefObject } from 'react'
+import { useReducedMotion } from 'framer-motion'
 
 interface Props {
   targetRef: RefObject<HTMLElement | null>
@@ -17,33 +18,35 @@ interface Props {
 /**
  * Shared parallax backdrop for all site parallax sections.
  *
- * Uses CSS `background-attachment: fixed` on an in-section background layer.
- * This preserves the visible "window over background" parallax effect without
- * rendering a viewport-fixed DOM node through `clip-path`, which was the source
- * of intermittent bright seams during scroll.
+ * Uses a desktop CSS fixed background plus a small JS fallback transform.
+ * `md:bg-fixed` gives the strong “window over background” parallax on normal
+ * desktop browsers; mobile keeps a normal moving layer for reliability.
  */
 export default function ParallaxBackdrop({
+  targetRef,
   desktopUrl,
   mobileUrl,
   hasDistinctMobile = false,
   imageClassName = '',
   edgeColor = '#0a0a0a',
 }: Props) {
+  const reduceMotion = useReducedMotion()
+  const y = useParallaxY(targetRef, reduceMotion)
+
   if (!desktopUrl && !mobileUrl) return null
 
   const baseLayerClass = [
-    // Keep the image as a normal in-section background layer. `background-attachment: fixed`
-    // is attractive for parallax, but it is unreliable in mobile browsers and
-    // headless/remote Chromium captures: hash navigation can land on a black
-    // section with no visible image. Reliability wins here — the content must
-    // always show.
-    'absolute inset-0 z-0 pointer-events-none bg-[#0a0a0a] bg-cover bg-center bg-no-repeat',
+    // Overscan vertically so the moving image never exposes a blank edge.
+    'absolute inset-x-0 -top-[12vh] -bottom-[12vh] z-0 pointer-events-none bg-[#0a0a0a] bg-cover bg-center bg-no-repeat md:bg-fixed will-change-transform',
     imageClassName,
   ]
     .filter(Boolean)
     .join(' ')
 
   const fallbackMobileUrl = mobileUrl || desktopUrl
+  const motionStyle = {
+    transform: `translate3d(0, ${y}px, 0)`,
+  }
 
   return (
     <>
@@ -51,7 +54,7 @@ export default function ParallaxBackdrop({
         <div
           aria-hidden="true"
           className={`${baseLayerClass} ${hasDistinctMobile ? 'hidden md:block' : 'block'}`}
-          style={{ backgroundImage: cssBackgroundUrl(desktopUrl) }}
+          style={{ backgroundImage: cssBackgroundUrl(desktopUrl), ...motionStyle }}
         />
       ) : null}
 
@@ -59,7 +62,7 @@ export default function ParallaxBackdrop({
         <div
           aria-hidden="true"
           className={`${baseLayerClass} block md:hidden`}
-          style={{ backgroundImage: cssBackgroundUrl(fallbackMobileUrl) }}
+          style={{ backgroundImage: cssBackgroundUrl(fallbackMobileUrl), ...motionStyle }}
         />
       ) : null}
 
@@ -75,6 +78,49 @@ export default function ParallaxBackdrop({
       />
     </>
   )
+}
+
+function useParallaxY(targetRef: RefObject<HTMLElement | null>, reduceMotion: boolean | null) {
+  const [y, setY] = useState(0)
+
+  useEffect(() => {
+    if (reduceMotion) {
+      setY(0)
+      return
+    }
+
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const target = targetRef.current
+      if (!target) return
+
+      const rect = target.getBoundingClientRect()
+      const viewport = window.innerHeight || document.documentElement.clientHeight || 1
+      const total = viewport + rect.height
+      const progress = total > 0 ? (viewport - rect.top) / total : 0.5
+      const clamped = Math.max(0, Math.min(1, progress))
+      // Move up/down by 8vh. The layer has 12vh overscan on each side, so this
+      // keeps image coverage while making the parallax clearly visible.
+      const nextY = Math.round((clamped - 0.5) * viewport * 0.16)
+      setY((prev) => (prev === nextY ? prev : nextY))
+    }
+
+    const requestUpdate = () => {
+      if (!frame) frame = window.requestAnimationFrame(update)
+    }
+
+    update()
+    window.addEventListener('scroll', requestUpdate, { passive: true })
+    window.addEventListener('resize', requestUpdate)
+    return () => {
+      window.removeEventListener('scroll', requestUpdate)
+      window.removeEventListener('resize', requestUpdate)
+      if (frame) window.cancelAnimationFrame(frame)
+    }
+  }, [reduceMotion, targetRef])
+
+  return y
 }
 
 function cssBackgroundUrl(url: string) {
