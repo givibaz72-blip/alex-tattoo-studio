@@ -52,7 +52,7 @@ export default function HeroBlock({ block }: Props) {
       {/* Content — no max-w on subtitle so "Santa Monica" centres freely */}
       <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto px-6 text-center">
         <motion.h1
-          initial={{ opacity: 0, y: 30 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
           className="font-serif text-[clamp(3rem,8vw,6rem)] tracking-tight leading-[1.05] text-[#D4AF37]"
@@ -62,7 +62,7 @@ export default function HeroBlock({ block }: Props) {
 
         {block.subtitle && (
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
             className="mx-auto text-center mt-6 font-serif italic text-[clamp(1rem,2vw,1.5rem)] tracking-[0.02em] md:tracking-[0.12em] text-[#D4AF37]/80 md:max-w-none"
@@ -75,7 +75,7 @@ export default function HeroBlock({ block }: Props) {
         )}
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="mt-12 flex flex-col sm:flex-row gap-5 sm:gap-8"

@@ -63,7 +63,9 @@ export default function ScrollAnimate({
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: 40 }}
+      // Content must be readable even if hydration/IntersectionObserver is
+      // delayed or blocked. Do not SSR hidden content with opacity:0.
+      initial={false}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: DURATION, delay, ease: EASE }}

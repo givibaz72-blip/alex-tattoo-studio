@@ -39,6 +39,13 @@ export default function ScrollSpy({
     )
     if (elements.length === 0) return
 
+    // If the page is opened with a hash (`/#studio`), do not immediately clear
+    // it while the browser is still performing the initial anchor jump.
+    let allowTopHashClear = !window.location.hash
+    const topHashClearTimer = window.setTimeout(() => {
+      allowTopHashClear = true
+    }, 1200)
+
     // Track latest "winning" section and write to URL once per animation frame.
     let latestHash: string | null = null
     let frame = 0
@@ -76,7 +83,7 @@ export default function ScrollSpy({
     // stay at `#home` indefinitely after the first scroll.
     const onScroll = () => {
       if (window.scrollY < 80) {
-        if (window.location.hash) {
+        if (allowTopHashClear && window.location.hash) {
           window.history.replaceState(null, '', window.location.pathname + window.location.search)
           window.dispatchEvent(new HashChangeEvent('hashchange'))
         }
@@ -85,6 +92,7 @@ export default function ScrollSpy({
     window.addEventListener('scroll', onScroll, { passive: true })
 
     return () => {
+      window.clearTimeout(topHashClearTimer)
       observer.disconnect()
       window.removeEventListener('scroll', onScroll)
       if (frame) window.cancelAnimationFrame(frame)

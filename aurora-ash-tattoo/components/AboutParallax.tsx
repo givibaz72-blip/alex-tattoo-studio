@@ -60,7 +60,7 @@ export default function AboutParallax({ heading, body, backgroundImage, mobileIm
 
       <div className="relative z-30 px-6 md:px-10 max-w-4xl mx-auto text-center">
         <motion.h2
-          initial={{ opacity: 0, y: 24 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.4 }}
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
@@ -69,7 +69,7 @@ export default function AboutParallax({ heading, body, backgroundImage, mobileIm
           {heading}
         </motion.h2>
         <motion.p
-          initial={{ opacity: 0, y: 16 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.4 }}
           transition={{ duration: 0.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}

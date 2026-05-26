@@ -60,7 +60,7 @@ const Hero = ({ heroImage }: HeroProps) => {
 
       <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto px-6">
         <motion.p
-          initial={{ opacity: 0, y: 10 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           className="label-line text-[#D4AF37]/70 mb-6"
@@ -69,7 +69,7 @@ const Hero = ({ heroImage }: HeroProps) => {
         </motion.p>
 
         <motion.h1
-          initial={{ opacity: 0, y: 24 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.1, delay: 0.1, ease: 'easeOut' }}
           className="font-serif text-[clamp(2.5rem,11vw,8rem)] tracking-tight mb-6 leading-none"
@@ -82,7 +82,7 @@ const Hero = ({ heroImage }: HeroProps) => {
         </motion.h1>
 
         <motion.p
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.9 }}
           className="font-serif italic text-[clamp(1rem,3vw,1.5rem)] text-[#D4AF37]/85 mb-12"
@@ -91,7 +91,7 @@ const Hero = ({ heroImage }: HeroProps) => {
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.7 }}
           className="flex flex-col sm:flex-row gap-5 sm:gap-8 w-full sm:w-auto"
@@ -112,7 +112,7 @@ const Hero = ({ heroImage }: HeroProps) => {
       </div>
 
       <motion.div
-        initial={{ opacity: 0 }}
+        initial={false}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2, duration: 0.8 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 z-10 px-4 w-full"

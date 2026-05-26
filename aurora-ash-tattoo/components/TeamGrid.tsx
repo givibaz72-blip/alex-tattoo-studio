@@ -31,7 +31,7 @@ export default function TeamGrid({ members }: Props) {
         return (
           <motion.div
             key={member.id}
-            initial={{ opacity: 0, y: 30 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.7, delay: idx * 0.12, ease: 'easeOut' }}
