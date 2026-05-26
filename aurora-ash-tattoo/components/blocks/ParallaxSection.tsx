@@ -55,8 +55,11 @@ interface Props {
 
 const HEIGHT_CLASS = {
   screen: 'min-h-screen',
-  tall: 'min-h-[75vh]',
-  half: 'min-h-[50vh]',
+  // Parallax blocks are menu/anchor destinations. Keep every destination at
+  // least one viewport tall so a direct jump does not expose the next block's
+  // heading at the bottom of the screen.
+  tall: 'min-h-screen',
+  half: 'min-h-screen',
 } as const
 
 /**
