@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import { DEFAULT_STUDIO_CONTACT } from '../lib/studio-contact-defaults'
@@ -175,6 +175,29 @@ export default function NavMenu({ artists, studio }: Props) {
 
   const closeMenu = useCallback(() => setIsOpen(false), [])
 
+  const handleHomeAnchorClick = useCallback(
+    (sectionId: SectionId) => (event: MouseEvent<HTMLAnchorElement>) => {
+      if (!isHome) {
+        closeMenu()
+        return
+      }
+
+      // Next.js hash links are sometimes flaky when a fullscreen animated menu
+      // closes in the same click. Drive same-page section navigation explicitly
+      // so menu items always move the viewport, not just update the URL hash.
+      event.preventDefault()
+      closeMenu()
+
+      window.requestAnimationFrame(() => {
+        const target = document.getElementById(sectionId)
+        if (!target) return
+        target.scrollIntoView({ block: 'start', behavior: 'smooth' })
+        window.history.replaceState(null, '', `#${sectionId}`)
+      })
+    },
+    [closeMenu, isHome],
+  )
+
   const activeKey = useMemo<string | null>(() => {
     if (pathname === '/inquiry') return 'inquiry'
     if (pathname === '/contact') return 'contact'
@@ -317,7 +340,7 @@ export default function NavMenu({ artists, studio }: Props) {
                 <motion.li variants={itemVariants}>
                   <Link
                     href={anchorHref('studio')}
-                    onClick={closeMenu}
+                    onClick={handleHomeAnchorClick('studio')}
                     className={menuLinkClass(activeKey === 'studio')}
                   >
                     Studio
@@ -327,7 +350,7 @@ export default function NavMenu({ artists, studio }: Props) {
                 <motion.li variants={itemVariants}>
                   <Link
                     href={anchorHref('artists')}
-                    onClick={closeMenu}
+                    onClick={handleHomeAnchorClick('artists')}
                     className={menuLinkClass(activeKey === 'artists')}
                   >
                     Artists
@@ -337,7 +360,7 @@ export default function NavMenu({ artists, studio }: Props) {
                 <motion.li variants={itemVariants}>
                   <Link
                     href={anchorHref('location')}
-                    onClick={closeMenu}
+                    onClick={handleHomeAnchorClick('location')}
                     className={menuLinkClass(activeKey === 'location')}
                   >
                     Location
@@ -347,7 +370,7 @@ export default function NavMenu({ artists, studio }: Props) {
                 <motion.li variants={itemVariants}>
                   <Link
                     href={anchorHref('aftercare')}
-                    onClick={closeMenu}
+                    onClick={handleHomeAnchorClick('aftercare')}
                     className={menuLinkClass(activeKey === 'aftercare')}
                   >
                     Aftercare
@@ -357,7 +380,7 @@ export default function NavMenu({ artists, studio }: Props) {
                 <motion.li variants={itemVariants}>
                   <Link
                     href={anchorHref('faq')}
-                    onClick={closeMenu}
+                    onClick={handleHomeAnchorClick('faq')}
                     className={menuLinkClass(activeKey === 'faq')}
                   >
                     FAQ

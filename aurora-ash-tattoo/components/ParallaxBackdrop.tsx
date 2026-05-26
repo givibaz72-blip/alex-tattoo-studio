@@ -32,7 +32,12 @@ export default function ParallaxBackdrop({
   if (!desktopUrl && !mobileUrl) return null
 
   const baseLayerClass = [
-    'absolute inset-0 z-0 pointer-events-none bg-[#0a0a0a] bg-cover bg-center bg-no-repeat bg-fixed',
+    // Keep the image as a normal in-section background layer. `background-attachment: fixed`
+    // is attractive for parallax, but it is unreliable in mobile browsers and
+    // headless/remote Chromium captures: hash navigation can land on a black
+    // section with no visible image. Reliability wins here — the content must
+    // always show.
+    'absolute inset-0 z-0 pointer-events-none bg-[#0a0a0a] bg-cover bg-center bg-no-repeat',
     imageClassName,
   ]
     .filter(Boolean)
