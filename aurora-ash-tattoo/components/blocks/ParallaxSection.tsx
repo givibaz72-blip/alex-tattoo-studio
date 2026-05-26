@@ -88,7 +88,12 @@ export default function ParallaxSection({ block, priority = false }: Props) {
 
   const overlay = clamp(block.overlayIntensity ?? 0.55, 0, 0.95)
   const heightClass = HEIGHT_CLASS[block.height ?? 'screen'] ?? HEIGHT_CLASS.screen
-  const sectionId = (block.sectionId ?? '').trim() || undefined
+  const rawSectionId = (block.sectionId ?? '').trim()
+  // The homepage seed has a final CTA parallax whose CMS sectionId is
+  // `contact`, followed by the real footer/contact details. Do not let this
+  // cinematic CTA steal the `#contact` menu target; keep Contact anchored to
+  // the actual contact information instead.
+  const sectionId = rawSectionId === 'contact' ? 'contact-cta' : rawSectionId || undefined
 
   const desktopUrl = resolveImageUrl(block.backgroundImage)
   const mobileSrc = block.mobileImage ?? block.backgroundImage
