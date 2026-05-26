@@ -64,17 +64,17 @@ export default async function ContactPage() {
       </Suspense>
 
       <main id="main" className="min-h-screen bg-[#0a0a0a] text-[#D4AF37]">
-        <section className="relative min-h-screen px-6 md:px-10 pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden">
+        <section className="relative min-h-screen px-6 md:px-10 pt-28 pb-16 md:pt-32 md:pb-20 overflow-hidden">
           <div
             aria-hidden="true"
             className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.12),transparent_45%),linear-gradient(180deg,#0a0a0a_0%,#121212_100%)]"
           />
           <div
             aria-hidden="true"
-            className="absolute inset-x-6 md:inset-x-10 top-[112px] bottom-10 border border-[#D4AF37]/12 pointer-events-none"
+            className="absolute inset-x-6 md:inset-x-10 top-24 bottom-8 border border-[#D4AF37]/12 pointer-events-none"
           />
 
-          <div className="relative z-10 max-w-7xl mx-auto grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-end min-h-[calc(100vh-12rem)]">
+          <div className="relative z-10 max-w-7xl mx-auto grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-center min-h-[calc(100vh-10rem)]">
             <div>
               <p className="text-[11px] tracking-[0.42em] uppercase text-[#D4AF37]/55 mb-8">
                 Contact the studio
