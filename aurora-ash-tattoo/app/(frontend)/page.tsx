@@ -11,6 +11,7 @@ import ScrollSpy from '../../components/ScrollSpy'
 import LocationSection from '../../components/LocationSection'
 import type { PageBlock } from '../../components/blocks/types'
 import { getPayload } from '../../lib/payload'
+import { loadStudioContact } from '../../lib/studio-contact'
 
 // ---------------------------------------------------------------------------
 // Dynamic metadata (Title, Description, Open Graph) — Next.js Metadata API
@@ -48,27 +49,15 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Home() {
   let heroImage: any = null
   let homeBlocks: PageBlock[] | null = null
-  let studio: {
-    studioName?: string | null
-    metaDescription?: string | null
-    address?: string | null
-    mapEmbedUrl?: string | null
-    hours?: string | null
-    phone?: string | null
-  } = {}
+  const studio = await loadStudioContact(1)
+  let schemaDescription =
+    'Premium tattoo studio focused on custom art, safety, and private appointments.'
 
   try {
     const payload = await getPayload()
     const settings = (await payload.findGlobal({ slug: 'siteSettings', depth: 1 })) as any
     heroImage = settings?.heroImage ?? null
-    studio = {
-      studioName: settings?.studioName ?? null,
-      metaDescription: settings?.metaDescription ?? null,
-      address: settings?.address ?? null,
-      mapEmbedUrl: settings?.mapEmbedUrl ?? null,
-      hours: settings?.hours ?? null,
-      phone: settings?.phone ?? null,
-    }
+    schemaDescription = settings?.metaDescription ?? schemaDescription
 
     const homePage = await payload.find({
       collection: 'pages',
@@ -104,13 +93,8 @@ export default async function Home() {
     }
   }
 
-  const addressLine = studio.address
-    ? studio.address.replace(/\n/g, ' · ')
-    : '8282 Santa Monica Blvd · West Hollywood, CA 90046'
-  const brandName = studio.studioName || 'Aurora & Ash Tattoo'
-  const schemaDescription =
-    studio.metaDescription ||
-    'Premium tattoo studio focused on custom art, safety, and private appointments.'
+  const addressLine = studio.addressInline
+  const brandName = studio.studioName
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aurora-ash.tattoo'
 
   // ---------------------------------------------------------------------------
@@ -124,13 +108,13 @@ export default async function Home() {
     url: siteUrl,
     address: {
       '@type': 'PostalAddress',
-      streetAddress: studio.address ?? addressLine,
-      addressLocality: 'West Hollywood',
-      addressRegion: 'CA',
-      postalCode: '90046',
-      addressCountry: 'US',
+      streetAddress: studio.address,
+      addressLocality: studio.addressLocality,
+      addressRegion: studio.addressRegion,
+      postalCode: studio.postalCode,
+      addressCountry: studio.addressCountry,
     },
-    ...(studio.phone ? { telephone: studio.phone } : {}),
+    telephone: studio.phone,
     openingHoursSpecification: {
       '@type': 'OpeningHoursSpecification',
       dayOfWeek: [
@@ -164,9 +148,9 @@ export default async function Home() {
             <BlockRenderer blocks={blocksBefore} />
             <LocationSection
               address={addressLine}
-              mapEmbedUrl={studio.mapEmbedUrl ?? undefined}
-              hours={studio.hours ?? undefined}
-              phone={studio.phone ?? undefined}
+              mapEmbedUrl={studio.mapEmbedUrl}
+              hours={studio.hours}
+              phone={studio.phone}
             />
             <BlockRenderer blocks={blocksAfter} />
           </>
@@ -175,9 +159,9 @@ export default async function Home() {
             <Hero heroImage={heroImage} />
             <LocationSection
               address={addressLine}
-              mapEmbedUrl={studio.mapEmbedUrl ?? undefined}
-              hours={studio.hours ?? undefined}
-              phone={studio.phone ?? undefined}
+              mapEmbedUrl={studio.mapEmbedUrl}
+              hours={studio.hours}
+              phone={studio.phone}
             />
           </>
         )}

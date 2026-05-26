@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 
 import NavBar from '../../../components/NavBar'
 import Footer from '../../../components/Footer'
+import { loadStudioContact } from '../../../lib/studio-contact'
 
 interface Props {
   searchParams: Promise<{ locale?: string }>
@@ -27,12 +28,12 @@ const COPY = {
     {
       h: '3. Storage and retention',
       body:
-        'Inquiries are stored in our secure CMS for as long as we need to manage your booking, and for a reasonable period afterwards for our records. You can request deletion at any time by writing to studio@aurora-ash.com.',
+        'Inquiries are stored in our secure CMS for as long as we need to manage your booking, and for a reasonable period afterwards for our records. You can request deletion at any time by writing to the studio email listed in Site Settings.',
     },
     {
       h: '4. Your rights',
       body:
-        'Depending on your jurisdiction (CCPA, GDPR, etc.), you may have the right to access, correct, or delete the information we hold about you. To exercise any of these rights, email studio@aurora-ash.com - we respond within 30 days.',
+        'Depending on your jurisdiction (CCPA, GDPR, etc.), you may have the right to access, correct, or delete the information we hold about you. To exercise any of these rights, email the studio address listed in Site Settings - we respond within 30 days.',
     },
     {
       h: '5. Cookies and analytics',
@@ -42,7 +43,7 @@ const COPY = {
     {
       h: '6. Contact',
       body:
-        'Questions about this policy or your data: studio@aurora-ash.com.',
+        'Questions about this policy or your data are routed to the studio email from Site Settings.',
     },
   ],
   disclaimer:
@@ -55,6 +56,28 @@ export const metadata: Metadata = {
 
 export default async function PrivacyPage({ searchParams }: Props) {
   await searchParams
+  const contact = await loadStudioContact(0)
+  const sections = COPY.sections.map((section) => {
+    if (section.h === '3. Storage and retention') {
+      return {
+        ...section,
+        body: `Inquiries are stored in our secure CMS for as long as we need to manage your booking, and for a reasonable period afterwards for our records. You can request deletion at any time by writing to ${contact.email}.`,
+      }
+    }
+    if (section.h === '4. Your rights') {
+      return {
+        ...section,
+        body: `Depending on your jurisdiction (CCPA, GDPR, etc.), you may have the right to access, correct, or delete the information we hold about you. To exercise any of these rights, email ${contact.email} - we respond within 30 days.`,
+      }
+    }
+    if (section.h === '6. Contact') {
+      return {
+        ...section,
+        body: `Questions about this policy or your data: ${contact.email}.`,
+      }
+    }
+    return section
+  })
   const t = COPY
 
   return (
@@ -72,7 +95,7 @@ export default async function PrivacyPage({ searchParams }: Props) {
           </p>
 
           <div className="space-y-10">
-            {t.sections.map((s) => (
+            {sections.map((s) => (
               <section key={s.h}>
                 <h2 className="font-serif text-2xl tracking-tight mb-3">{s.h}</h2>
                 <p className="text-[#D4AF37]/80 leading-relaxed">{s.body}</p>

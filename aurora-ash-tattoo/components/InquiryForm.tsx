@@ -10,6 +10,7 @@ import {
   inquiryFormSchema,
   type InquiryFormPayload,
 } from './InquiryForm.schema'
+import { DEFAULT_STUDIO_CONTACT } from '../lib/studio-contact-defaults'
 
 // ── Re-exported for page consumers ────────────────────────────────────────
 
@@ -31,7 +32,7 @@ interface InquiryFormProps {
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
-const STUDIO_EMAIL_FALLBACK = 'hello@auroraash.com'
+const STUDIO_EMAIL_FALLBACK = DEFAULT_STUDIO_CONTACT.email
 
 // ── Input style tokens (shared across all fields) ─────────────────────────
 

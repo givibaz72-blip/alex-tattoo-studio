@@ -4,47 +4,7 @@ import Link from 'next/link'
 import NavBar from '../../../components/NavBar'
 import Footer from '../../../components/Footer'
 import SocialLinks from '../../../components/SocialLinks'
-import { getPayload } from '../../../lib/payload'
-
-const FALLBACK = {
-  studioName: 'Aurora & Ash',
-  address: '8282 Santa Monica Blvd\nWest Hollywood, CA 90046',
-  phone: '+1 (323) 555-0190',
-  email: 'hello@auroraash.com',
-  hours: 'Mon — Sun: 12 PM — 8 PM (By Appointment Only)',
-}
-
-type ContactInfo = typeof FALLBACK & {
-  social: Record<string, unknown>
-}
-
-async function loadContactInfo(): Promise<ContactInfo> {
-  try {
-    const payload = await getPayload()
-    const settings = (await payload.findGlobal({
-      slug: 'siteSettings',
-      depth: 1,
-    })) as Record<string, unknown> & {
-      studioName?: string | null
-      address?: string | null
-      phone?: string | null
-      email?: string | null
-      hours?: string | null
-      social?: Record<string, unknown> | null
-    }
-
-    return {
-      studioName: settings?.studioName ?? FALLBACK.studioName,
-      address: settings?.address ?? FALLBACK.address,
-      phone: settings?.phone ?? FALLBACK.phone,
-      email: settings?.email ?? FALLBACK.email,
-      hours: settings?.hours ?? FALLBACK.hours,
-      social: (settings?.social ?? {}) as Record<string, unknown>,
-    }
-  } catch {
-    return { ...FALLBACK, social: {} }
-  }
-}
+import { loadStudioContact, mailHref, telHref } from '../../../lib/studio-contact'
 
 export const metadata = {
   title: 'Contact — Aurora & Ash',
@@ -53,9 +13,9 @@ export const metadata = {
 }
 
 export default async function ContactPage() {
-  const info = await loadContactInfo()
-  const telHref = `tel:${(info.phone ?? '').replace(/[^+\d]/g, '')}`
-  const mailHref = `mailto:${info.email ?? ''}`
+  const info = await loadStudioContact(1)
+  const phoneHref = telHref(info.phone)
+  const emailHref = mailHref(info.email)
 
   return (
     <>
@@ -94,7 +54,7 @@ export default async function ContactPage() {
                   Make an appointment
                 </Link>
                 <a
-                  href={mailHref}
+                  href={emailHref}
                   className="inline-flex min-h-12 items-center justify-center border border-[#D4AF37]/35 px-7 py-3 text-[11px] tracking-[0.3em] uppercase text-[#D4AF37]/75 transition-colors hover:border-[#D4AF37] hover:text-[#D4AF37]"
                 >
                   Email the studio
@@ -112,10 +72,10 @@ export default async function ContactPage() {
               </ContactCard>
 
               <ContactCard label="Contact">
-                <a href={telHref} className="block underline decoration-[#D4AF37]/25 underline-offset-4 hover:text-white">
+                <a href={phoneHref} className="block underline decoration-[#D4AF37]/25 underline-offset-4 hover:text-white">
                   {info.phone}
                 </a>
-                <a href={mailHref} className="mt-3 block underline decoration-[#D4AF37]/25 underline-offset-4 hover:text-white">
+                <a href={emailHref} className="mt-3 block underline decoration-[#D4AF37]/25 underline-offset-4 hover:text-white">
                   {info.email}
                 </a>
               </ContactCard>

@@ -1,15 +1,7 @@
 import Link from 'next/link'
-import { getPayload } from '../lib/payload'
 import SocialLinks from './SocialLinks'
 import ScrollTopButton from './ScrollTopButton'
-
-const FALLBACK = {
-  name: 'Aurora & Ash',
-  address: '8282 Santa Monica Blvd\nWest Hollywood, CA 90046',
-  phone: '+1 (323) 555-0190',
-  email: 'hello@auroraash.com',
-  hours: 'Mon — Sun: 12 PM — 8 PM (By Appointment Only)',
-}
+import { loadStudioContact, mailHref, telHref } from '../lib/studio-contact'
 
 const COPY = {
   location: 'LOCATION',
@@ -28,36 +20,9 @@ const COPY = {
 
 export default async function Footer() {
   const t = COPY
-
-  let info = FALLBACK
-  let social: Record<string, unknown> = {}
-
-  try {
-    const payload = await getPayload()
-    const settings = (await payload.findGlobal({
-      slug: 'siteSettings',
-      depth: 1,
-    })) as Record<string, unknown> & {
-      phone?: string | null
-      email?: string | null
-      address?: string | null
-      hours?: string | null
-      social?: Record<string, unknown> | null
-    }
-    info = {
-      name: FALLBACK.name,
-      address: settings?.address ?? FALLBACK.address,
-      phone: settings?.phone ?? FALLBACK.phone,
-      email: settings?.email ?? FALLBACK.email,
-      hours: settings?.hours ?? FALLBACK.hours,
-    }
-    social = (settings?.social ?? {}) as Record<string, unknown>
-  } catch {
-    // fall through to fallback
-  }
-
-  const telHref = `tel:${(info.phone ?? '').replace(/[^+\d]/g, '')}`
-  const mailHref = `mailto:${info.email ?? ''}`
+  const info = await loadStudioContact(1)
+  const phoneHref = telHref(info.phone)
+  const emailHref = mailHref(info.email)
 
   return (
     <footer
@@ -111,8 +76,8 @@ export default async function Footer() {
 
         <div className="footer__column">
           <h3 className="footer__heading">{t.contact}</h3>
-          <a href={telHref} className="footer__link block">{info.phone}</a>
-          <a href={mailHref} className="footer__link block mt-2">{info.email}</a>
+          <a href={phoneHref} className="footer__link block">{info.phone}</a>
+          <a href={emailHref} className="footer__link block mt-2">{info.email}</a>
           <Link
             href="/inquiry"
             className="mt-6 inline-flex items-center min-h-11 px-5 py-3 border border-[#D4AF37] text-[#D4AF37] text-[12px] tracking-[0.28em] uppercase hover:bg-[#D4AF37] hover:text-black transition-colors"
@@ -123,16 +88,16 @@ export default async function Footer() {
 
         <div className="footer__column">
           <h3 className="footer__heading">{t.follow}</h3>
-          <SocialLinks social={social as any} variant="footer" />
+          <SocialLinks social={info.social as any} variant="footer" />
         </div>
       </div>
 
       <div className="border-t border-[#D4AF37]/10">
         <div className="max-w-7xl mx-auto px-6 md:px-10 py-5 flex flex-col md:flex-row justify-between gap-2 text-[11px] tracking-[0.22em] uppercase text-[#D4AF37]/55">
-          <p>© {new Date().getFullYear()} {info.name} Tattoo Studio LLC. All rights reserved.</p>
-          <p>By appointment only · West Hollywood, California</p>
+          <p>© {new Date().getFullYear()} {info.studioName} LLC. All rights reserved.</p>
+          <p>By appointment only · {info.addressLocality}, {info.addressRegion}</p>
         </div>
       </div>
     </footer>
   )
-}
+}

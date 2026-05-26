@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
+import { DEFAULT_STUDIO_CONTACT } from '../lib/studio-contact-defaults'
+
 /**
  * Fullscreen "MENU" overlay - inspired by Bang Bang Forever.
  *
@@ -42,8 +44,8 @@ const SECTION_IDS = ['home', 'studio', 'artists', 'location', 'aftercare', 'faq'
 type SectionId = (typeof SECTION_IDS)[number]
 
 const FALLBACK = {
-  address: '827 N La Cienega Blvd, Suite 4\nWest Hollywood, CA 90069',
-  phone: '+1 (323) 555-0142',
+  address: DEFAULT_STUDIO_CONTACT.address,
+  phone: DEFAULT_STUDIO_CONTACT.phone,
 }
 
 // Soft "expo-out" easing: snappy on entry, slow at finish.

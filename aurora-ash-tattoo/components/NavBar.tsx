@@ -1,4 +1,5 @@
 import { getPayload } from '../lib/payload'
+import { loadStudioContact } from '../lib/studio-contact'
 import NavMenu, { type ArtistLink, type StudioInfo } from './NavMenu'
 
 /**
@@ -8,26 +9,22 @@ import NavMenu, { type ArtistLink, type StudioInfo } from './NavMenu'
  */
 export default async function NavBar() {
   let artists: ArtistLink[] = []
-  let studio: StudioInfo = {}
+  const studio: StudioInfo = await loadStudioContact(1)
 
   try {
     const payload = await getPayload()
-    const [artistsRes, settingsGlobal] = await Promise.all([
-      payload.find({
-        collection: 'artists',
-        sort: 'order',
-        limit: 12,
-        depth: 0,
-      }),
-      payload.findGlobal({ slug: 'siteSettings', depth: 0 }),
-    ])
+    const artistsRes = await payload.find({
+      collection: 'artists',
+      sort: 'order',
+      limit: 12,
+      depth: 0,
+    })
     artists = (artistsRes.docs as unknown as Array<{ slug: string; name: string }>).map((a) => ({
       slug: a.slug,
       name: a.name,
     }))
-    studio = (settingsGlobal as StudioInfo) ?? {}
   } catch {
-    // Fall through with empty defaults; NavMenu has its own fallbacks.
+    // Fall through with shared studio-contact defaults and an empty artist list.
   }
 
   return <NavMenu artists={artists} studio={studio} />

@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 
 import NavBar from '../../../components/NavBar'
 import Footer from '../../../components/Footer'
+import { loadStudioContact } from '../../../lib/studio-contact'
 
 export const metadata: Metadata = {
   title: 'Terms of Service — Aurora & Ash',
@@ -63,11 +64,21 @@ const SECTIONS = [
   {
     h: '11. Contact',
     body:
-      'Questions about these terms: hello@auroraash.com. For booking inquiries, please use the appointment form.',
+      'Questions about these terms are routed to the studio email from Site Settings. For booking inquiries, please use the appointment form.',
   },
 ]
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const contact = await loadStudioContact(0)
+  const sections = SECTIONS.map((section) =>
+    section.h === '11. Contact'
+      ? {
+          ...section,
+          body: `Questions about these terms: ${contact.email}. For booking inquiries, please use the appointment form.`,
+        }
+      : section,
+  )
+
   return (
     <>
       <Suspense>
@@ -99,12 +110,12 @@ export default function TermsPage() {
 
           <p className="text-[#D4AF37]/75 text-base md:text-lg leading-relaxed mb-14">
             These terms govern bookings made with Aurora &amp; Ash Tattoo Studio
-            LLC (&quot;the studio&quot;) at our West Hollywood location. By submitting an
+            LLC (&quot;the studio&quot;) at our {contact.addressLocality} location. By submitting an
             inquiry or booking an appointment you agree to the following policies.
           </p>
 
           <div className="space-y-12">
-            {SECTIONS.map((s) => (
+            {sections.map((s) => (
               <section key={s.h}>
                 <h2 className="font-serif text-xl md:text-2xl tracking-tight text-[#D4AF37] mb-3">
                   {s.h}

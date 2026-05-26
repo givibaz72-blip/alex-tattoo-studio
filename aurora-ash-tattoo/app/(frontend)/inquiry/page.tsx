@@ -4,6 +4,7 @@ import NavBar from '../../../components/NavBar'
 import Footer from '../../../components/Footer'
 import InquiryForm, { type ArtistOption } from '../../../components/InquiryForm'
 import { getPayload } from '../../../lib/payload'
+import { loadStudioContact } from '../../../lib/studio-contact'
 
 interface Props {
   searchParams: Promise<{ artist?: string }>
@@ -44,15 +45,8 @@ async function loadArtists(): Promise<ArtistOption[]> {
 }
 
 async function loadStudio(): Promise<{ email?: string }> {
-  try {
-    const payload = await getPayload()
-    const settings = (await payload.findGlobal({ slug: 'siteSettings' })) as any
-    return {
-      email: settings?.email ?? undefined,
-    }
-  } catch {
-    return {}
-  }
+  const contact = await loadStudioContact(0)
+  return { email: contact.email }
 }
 
 async function loadInquiryPage(): Promise<{ title: string; subtitle: string }> {

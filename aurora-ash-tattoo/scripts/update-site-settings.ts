@@ -7,7 +7,13 @@ import config from '@payload-config'
 
 const SITE_SETTINGS_DATA = {
   phone: '+1 (323) 555-0190',
+  email: 'hello@auroraash.com',
   address: '8282 Santa Monica Blvd\nWest Hollywood, CA 90046',
+  addressLocality: 'West Hollywood',
+  addressRegion: 'CA',
+  postalCode: '90046',
+  addressCountry: 'US',
+  hours: 'Mon — Sun: 12 PM — 8 PM (By Appointment Only)',
   social: {
     instagram: '@aurora_ash_tattoo',
     tiktok: '@aurora_ash_tattoo',

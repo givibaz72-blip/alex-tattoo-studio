@@ -169,6 +169,10 @@ const SITE_SETTINGS = {
   phone: '+1 (323) 555-0190',
   email: 'hello@auroraash.com',
   address: '8282 Santa Monica Blvd\nWest Hollywood, CA 90046',
+  addressLocality: 'West Hollywood',
+  addressRegion: 'CA',
+  postalCode: '90046',
+  addressCountry: 'US',
   hours: 'Mon — Sun: 12 PM — 8 PM (By Appointment Only)',
   social: {
     instagram: '@aurora_ash_tattoo',
@@ -598,6 +602,10 @@ export async function runSeed(payload: any): Promise<SeedResult> {
     if (!current?.phone) patch.phone = SITE_SETTINGS.phone
     if (!current?.email) patch.email = SITE_SETTINGS.email
     if (!current?.address) patch.address = SITE_SETTINGS.address
+    if (!current?.addressLocality) patch.addressLocality = SITE_SETTINGS.addressLocality
+    if (!current?.addressRegion) patch.addressRegion = SITE_SETTINGS.addressRegion
+    if (!current?.postalCode) patch.postalCode = SITE_SETTINGS.postalCode
+    if (!current?.addressCountry) patch.addressCountry = SITE_SETTINGS.addressCountry
     if (!current?.hours) patch.hours = SITE_SETTINGS.hours
 
     const social = current?.social ?? {}
