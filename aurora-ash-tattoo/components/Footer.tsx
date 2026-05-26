@@ -60,7 +60,7 @@ export default async function Footer() {
   const mailHref = `mailto:${info.email ?? ''}`
 
   return (
-    <footer id="contact" className="bg-[#0a0a0a] text-[#D4AF37] relative border-t border-[#D4AF37]/15">
+    <footer id="contact" className="bg-[#0a0a0a] text-[#D4AF37] relative border-t border-[#D4AF37]/15 scroll-mt-[72px]">
       {/* ScrollTopButton is now fixed in the viewport bottom-right; rendered
           here so it shares the footer subtree but its position is independent. */}
       <ScrollTopButton />

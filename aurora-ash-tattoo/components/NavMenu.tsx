@@ -218,7 +218,7 @@ export default function NavMenu({ artists, studio }: Props) {
       <header
         className={`fixed top-0 inset-x-0 z-[60] h-[72px] px-6 md:px-10 flex justify-between items-center transition-colors duration-300 ${
           headerSolid && !isOpen
-            ? 'bg-[#0a0a0a]/65 backdrop-blur-md'
+            ? 'bg-[#0a0a0a]/95 backdrop-blur-md'
             : 'bg-gradient-to-b from-[#0a0a0a]/45 via-[#0a0a0a]/15 to-transparent'
         }`}
       >

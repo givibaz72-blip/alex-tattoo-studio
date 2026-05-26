@@ -47,7 +47,13 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: var(--navbar-height);
+  /*
+   * Anchor offsets are defined on each target section via scroll-margin.
+   * Keeping a global scroll-padding here stacks with those section offsets and
+   * can leave the previous section visible under the fixed header after menu
+   * jumps (notably when opening #artists from the overlay menu).
+   */
+  scroll-padding-top: 0;
 }
 
 html,

@@ -98,7 +98,7 @@ export default function ParallaxSection({ block, priority = false }: Props) {
     <section
       ref={sectionRef}
       id={sectionId}
-      className={`relative z-10 w-full ${heightClass} overflow-hidden bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center scroll-mt-[72px]`}
+      className={`relative z-10 w-full ${heightClass} overflow-hidden bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center scroll-mt-0`}
     >
       <ParallaxBackdrop
         targetRef={sectionRef}
