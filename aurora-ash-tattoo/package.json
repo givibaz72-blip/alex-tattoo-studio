@@ -11,7 +11,7 @@
     "payload": "payload",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
-    "seed": "echo Open http://localhost:3000/api/seed in the browser while the dev server is running.",
+    "seed": "node scripts/run-seed.mjs",
     "snapshot": "powershell -ExecutionPolicy Bypass -File ./scripts/snapshot.ps1"
   },
   "dependencies": {
