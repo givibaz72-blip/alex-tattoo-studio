@@ -1,9 +1,6 @@
 'use client'
 
 import type { RefObject } from 'react'
-import Image from 'next/image'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
-import { useIsMobile } from '../lib/useIsMobile'
 
 interface Props {
   targetRef: RefObject<HTMLElement | null>
@@ -20,72 +17,46 @@ interface Props {
 /**
  * Shared parallax backdrop for all site parallax sections.
  *
- * Uses one shared viewport-fixed layer clipped by the section. The fixed layer
- * gives visible parallax even when scroll-driven transforms are subtle, while
- * generous vertical overscan keeps the image from exposing page background at
- * section edges. Small in-section edge masks cover the last sub-pixel of the
- * clip boundary, where browsers can otherwise draw a bright antialias seam.
+ * Uses CSS `background-attachment: fixed` on an in-section background layer.
+ * This preserves the visible "window over background" parallax effect without
+ * rendering a viewport-fixed DOM node through `clip-path`, which was the source
+ * of intermittent bright seams during scroll.
  */
 export default function ParallaxBackdrop({
-  targetRef,
   desktopUrl,
   mobileUrl,
-  desktopAlt = '',
-  mobileAlt = '',
   hasDistinctMobile = false,
-  priority = false,
   imageClassName = '',
   edgeColor = '#0a0a0a',
 }: Props) {
-  const reduceMotion = useReducedMotion()
-  const isMobile = useIsMobile()
-  const { scrollYProgress } = useScroll({
-    target: targetRef,
-    offset: ['start end', 'end start'],
-  })
-
-  // Fixed viewport layer creates the actual "window over a background" parallax.
-  // The scroll transform adds a small lag on top; if client JS has not hydrated
-  // yet, the fixed layer still keeps the parallax effect visible instead of
-  // degrading to a plain static absolute background.
-  const travel = isMobile ? '5vh' : '18vh'
-  const y = useTransform(scrollYProgress, [0, 1], [travel, `-${travel}`])
-
   if (!desktopUrl && !mobileUrl) return null
 
-  const baseImageClass = ['object-cover scale-[1.02]', imageClassName].filter(Boolean).join(' ')
+  const baseLayerClass = [
+    'absolute inset-0 z-0 pointer-events-none bg-[#0a0a0a] bg-cover bg-center bg-no-repeat bg-fixed',
+    imageClassName,
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  const fallbackMobileUrl = mobileUrl || desktopUrl
 
   return (
     <>
-      <motion.div
-        aria-hidden="true"
-        style={reduceMotion ? {} : { y, willChange: 'transform' }}
-        className="fixed -top-[8vh] left-0 z-0 h-[116vh] w-full pointer-events-none bg-[#0a0a0a] md:-top-[25vh] md:h-[150vh]"
-      >
-        {desktopUrl ? (
-          <Image
-            src={desktopUrl}
-            alt={desktopAlt}
-            fill
-            priority={priority}
-            quality={85}
-            sizes="100vw"
-            className={`${baseImageClass} ${hasDistinctMobile ? 'hidden md:block' : 'block'}`}
-          />
-        ) : null}
+      {desktopUrl ? (
+        <div
+          aria-hidden="true"
+          className={`${baseLayerClass} ${hasDistinctMobile ? 'hidden md:block' : 'block'}`}
+          style={{ backgroundImage: cssBackgroundUrl(desktopUrl) }}
+        />
+      ) : null}
 
-        {hasDistinctMobile && mobileUrl ? (
-          <Image
-            src={mobileUrl}
-            alt={mobileAlt || desktopAlt}
-            fill
-            priority={priority}
-            quality={85}
-            sizes="100vw"
-            className={`${baseImageClass} block md:hidden`}
-          />
-        ) : null}
-      </motion.div>
+      {hasDistinctMobile && fallbackMobileUrl ? (
+        <div
+          aria-hidden="true"
+          className={`${baseLayerClass} block md:hidden`}
+          style={{ backgroundImage: cssBackgroundUrl(fallbackMobileUrl) }}
+        />
+      ) : null}
 
       <div
         aria-hidden="true"
@@ -99,4 +70,8 @@ export default function ParallaxBackdrop({
       />
     </>
   )
+}
+
+function cssBackgroundUrl(url: string) {
+  return `url("${url.replace(/"/g, '\\"')}")`
 }

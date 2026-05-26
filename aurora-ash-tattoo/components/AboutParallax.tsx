@@ -17,8 +17,8 @@ interface Props {
 }
 
 /**
- * About section with parallax background — shared viewport-fixed backdrop
- * clipped by the section so this curated block behaves like CMS parallax blocks.
+ * About section with parallax background — shared CSS fixed background layer
+ * inside the section so this curated block behaves like CMS parallax blocks.
  *
  * Art direction (§14.1):
  *  - Accepts an optional `mobileImage` portrait crop.
@@ -36,7 +36,7 @@ export default function AboutParallax({ heading, body, backgroundImage, mobileIm
     <section
       ref={sectionRef}
       id="about"
-      className="relative z-10 w-full min-h-screen overflow-hidden [clip-path:inset(0)] bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center scroll-mt-[72px]"
+      className="relative z-10 w-full min-h-screen overflow-hidden bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center scroll-mt-[72px]"
     >
       <ParallaxBackdrop
         targetRef={sectionRef}

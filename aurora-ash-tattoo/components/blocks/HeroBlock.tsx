@@ -16,9 +16,9 @@ interface Props {
  * Hero block with parallax background.
  *
  * Uses the shared `<ParallaxBackdrop>` implementation:
- * - The image lives in one shared viewport-fixed layer clipped by the section.
- * - A subtle y transform adds gentle "lag" as you scroll.
- * - The section uses `clip-path: inset(0)` so the fixed layer stays framed.
+ * - The image is rendered as an in-section CSS fixed background layer.
+ * - The browser creates the visible "window over background" parallax as you scroll.
+ * - The section uses `overflow-hidden`, avoiding fixed DOM/clip-path seams.
  *
  * Respects `prefers-reduced-motion` - in that case the image stays static.
  */
@@ -34,7 +34,7 @@ export default function HeroBlock({ block }: Props) {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full min-h-screen overflow-hidden [clip-path:inset(0)] bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center"
+      className="relative w-full min-h-screen overflow-hidden bg-[#0a0a0a] text-[#D4AF37] flex items-center justify-center"
     >
       <ParallaxBackdrop
         targetRef={sectionRef}
