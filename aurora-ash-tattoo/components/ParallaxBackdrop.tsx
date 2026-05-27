@@ -36,9 +36,9 @@ export default function ParallaxBackdrop({
   if (!desktopUrl && !mobileUrl) return null
 
   const layerClass = [
-    'absolute inset-x-0 -top-[12vh] -bottom-[12vh] z-0 pointer-events-none',
+    'absolute inset-0 z-0 pointer-events-none',
     'bg-[#0a0a0a] bg-cover bg-center bg-no-repeat',
-    'transition-none',
+    'will-change-transform',
     imageClassName,
   ]
     .filter(Boolean)
