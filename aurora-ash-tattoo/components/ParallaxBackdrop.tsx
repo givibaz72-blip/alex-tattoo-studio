@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type RefObject } from 'react'
+import { useEffect, useRef, type RefObject } from 'react'
 import { useReducedMotion } from 'framer-motion'
 
 interface Props {
@@ -16,11 +16,8 @@ interface Props {
 }
 
 /**
- * Shared parallax backdrop for all site parallax sections.
- *
- * Uses a desktop CSS fixed background plus a small JS fallback transform.
- * `md:bg-fixed` gives the strong “window over background” parallax on normal
- * desktop browsers; mobile keeps a normal moving layer for reliability.
+ * Parallax backdrop — CSS-driven, zero React re-renders on scroll.
+ * Uses a ref to set CSS transform directly, bypassing setState entirely.
  */
 export default function ParallaxBackdrop({
   targetRef,
@@ -31,41 +28,45 @@ export default function ParallaxBackdrop({
   edgeColor = '#0a0a0a',
 }: Props) {
   const reduceMotion = useReducedMotion()
-  const y = useParallaxY(targetRef, reduceMotion)
+  const desktopRef = useRef<HTMLDivElement>(null)
+  const mobileRef = useRef<HTMLDivElement>(null)
+
+  useParallaxY(targetRef, reduceMotion, [desktopRef, mobileRef])
 
   if (!desktopUrl && !mobileUrl) return null
 
-  const baseLayerClass = [
-    // Overscan vertically so the moving image never exposes a blank edge.
-    'absolute inset-x-0 -top-[12vh] -bottom-[12vh] z-0 pointer-events-none bg-[#0a0a0a] bg-cover bg-center bg-no-repeat md:bg-fixed will-change-transform',
+  const layerClass = [
+    'absolute inset-x-0 -top-[12vh] -bottom-[12vh] z-0 pointer-events-none',
+    'bg-[#0a0a0a] bg-cover bg-center bg-no-repeat',
+    'transition-none',
     imageClassName,
   ]
     .filter(Boolean)
     .join(' ')
 
   const fallbackMobileUrl = mobileUrl || desktopUrl
-  const motionStyle = {
-    transform: `translate3d(0, ${y}px, 0)`,
-  }
 
   return (
     <>
       {desktopUrl ? (
         <div
+          ref={desktopRef}
           aria-hidden="true"
-          className={`${baseLayerClass} ${hasDistinctMobile ? 'hidden md:block' : 'block'}`}
-          style={{ backgroundImage: cssBackgroundUrl(desktopUrl), ...motionStyle }}
+          className={`${layerClass} ${hasDistinctMobile ? 'hidden md:block' : 'block'}`}
+          style={{ backgroundImage: cssUrl(desktopUrl) }}
         />
       ) : null}
 
       {hasDistinctMobile && fallbackMobileUrl ? (
         <div
+          ref={mobileRef}
           aria-hidden="true"
-          className={`${baseLayerClass} block md:hidden`}
-          style={{ backgroundImage: cssBackgroundUrl(fallbackMobileUrl), ...motionStyle }}
+          className={`${layerClass} block md:hidden`}
+          style={{ backgroundImage: cssUrl(fallbackMobileUrl) }}
         />
       ) : null}
 
+      {/* Edge gradients — no change */}
       <div
         aria-hidden="true"
         className="absolute inset-x-0 -top-px z-40 h-10 pointer-events-none"
@@ -80,12 +81,20 @@ export default function ParallaxBackdrop({
   )
 }
 
-function useParallaxY(targetRef: RefObject<HTMLElement | null>, reduceMotion: boolean | null) {
-  const [y, setY] = useState(0)
-
+/**
+ * Zero-render parallax: applies transform directly to DOM refs.
+ * No useState, no setState, no React re-renders on scroll.
+ */
+function useParallaxY(
+  targetRef: RefObject<HTMLElement | null>,
+  reduceMotion: boolean | null,
+  layerRefs: RefObject<HTMLDivElement | null>[],
+) {
   useEffect(() => {
     if (reduceMotion) {
-      setY(0)
+      for (const ref of layerRefs) {
+        if (ref.current) ref.current.style.transform = ''
+      }
       return
     }
 
@@ -100,29 +109,30 @@ function useParallaxY(targetRef: RefObject<HTMLElement | null>, reduceMotion: bo
       const total = viewport + rect.height
       const progress = total > 0 ? (viewport - rect.top) / total : 0.5
       const clamped = Math.max(0, Math.min(1, progress))
-      // Move up/down by 8vh. The layer has 12vh overscan on each side, so this
-      // keeps image coverage while making the parallax clearly visible.
-      const nextY = Math.round((clamped - 0.5) * viewport * 0.16)
-      setY((prev) => (prev === nextY ? prev : nextY))
+      const y = Math.round((clamped - 0.5) * viewport * 0.16)
+
+      for (const ref of layerRefs) {
+        if (ref.current) {
+          ref.current.style.transform = `translate3d(0, ${y}px, 0)`
+        }
+      }
     }
 
-    const requestUpdate = () => {
+    const schedule = () => {
       if (!frame) frame = window.requestAnimationFrame(update)
     }
 
     update()
-    window.addEventListener('scroll', requestUpdate, { passive: true })
-    window.addEventListener('resize', requestUpdate)
+    window.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
     return () => {
-      window.removeEventListener('scroll', requestUpdate)
-      window.removeEventListener('resize', requestUpdate)
+      window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
       if (frame) window.cancelAnimationFrame(frame)
     }
-  }, [reduceMotion, targetRef])
-
-  return y
+  }, [reduceMotion, targetRef, layerRefs])
 }
 
-function cssBackgroundUrl(url: string) {
+function cssUrl(url: string) {
   return `url("${url.replace(/"/g, '\\"')}")`
 }
