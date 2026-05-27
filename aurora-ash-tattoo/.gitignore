@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Next.js build outputs
+.next/
+out/
+dist/
+build/
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# Local databases (Payload SQLite)
+payload.db
+payload.db-journal
+*.sqlite
+*.sqlite-journal
+
+# IDE
+.vscode/
+.idea/
+.continue/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Misc
+.swc/
+# Payload media uploads
+public/media/*
+!public/media/aurora_and_ash_logo.svg
+!public/media/logo.svg
+!public/media/logo-1.svg

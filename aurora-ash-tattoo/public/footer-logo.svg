@@ -1,0 +1,10 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Diamond frame -->
+  <path d="M100 25L165 100L100 175L35 100L100 25Z" stroke="white" stroke-width="1"/>
+  <!-- A monogram - two slanted lines and crossbar -->
+  <path d="M85 110L115 70" stroke="white" stroke-width="1"/>
+  <path d="M85 70L115 110" stroke="white" stroke-width="1"/>
+  <path d="M92 90L108 90" stroke="white" stroke-width="1"/>
+  <!-- AURORA & ASH text -->
+  <text x="100" y="192" text-anchor="middle" font-family="Georgia, serif" font-size="7" fill="white" letter-spacing="3">AURORA & ASH</text>
+</svg>

@@ -1,0 +1,812 @@
+/* ======================================================================
+   Aurora & Ash — Payload admin theme
+   Dark luxury: anthracite backgrounds, gold accents, readable controls.
+
+   Strategy:
+   1. Override Payload v3 CSS variables (--bg-color, --color, etc.) on
+      .btn--style-* selectors. This is the CORRECT way to re-theme.
+   2. Provide direct color/background fallbacks with !important for cases
+      where the variable cascade is broken.
+   3. Target buttons by id (#action-save, #action-publish) for absolute
+      certainty on the most important controls.
+   ====================================================================== */
+
+[data-theme='dark'] {
+  --color-base-0:    #121212;
+  --color-base-50:   #1a1a1a;
+  --color-base-100:  #1f1f1f;
+  --color-base-150:  #242424;
+  --color-base-200:  #2a2a2a;
+  --color-base-250:  #303030;
+  --color-base-300:  #383838;
+  --color-base-350:  #424242;
+  --color-base-400:  #525252;
+  --color-base-450:  #6a6a6a;
+  --color-base-500:  #808080;
+  --color-base-550:  #969696;
+  --color-base-600:  #adadad;
+  --color-base-650:  #bdbdbd;
+  --color-base-700:  #cacaca;
+  --color-base-750:  #dcdcdc;
+  --color-base-800:  #eaeaea;
+  --color-base-850:  #efefef;
+  --color-base-900:  #f4f4f4;
+  --color-base-950:  #f9f9f9;
+  --color-base-1000: #ffffff;
+
+  --theme-bg:            #121212;
+  --theme-elevation-0:   #121212;
+  --theme-elevation-50:  #1a1a1a;
+  --theme-elevation-100: #242424;
+  --theme-elevation-150: #2a2a2a;
+  --theme-elevation-200: #2f2f2f;
+  --theme-elevation-250: #383838;
+  --theme-elevation-300: #424242;
+  --theme-elevation-400: #525252;
+  --theme-elevation-500: #808080;
+  --theme-elevation-600: #adadad;
+  --theme-elevation-700: #cacaca;
+  --theme-elevation-800: #eaeaea;
+  --theme-elevation-900: #f4f4f4;
+  --theme-elevation-1000: #ffffff;
+  --theme-input-bg:      #1f1f1f;
+  --theme-text:          #eaeaea;
+  --theme-text-dim:      #a0a0a0;
+  --theme-border-color:  #333333;
+  --theme-overlay:       rgba(0, 0, 0, 0.85);
+  --theme-success-400:   #d4af37;
+  --theme-primary-500:   #d4af37;
+}
+
+[data-theme='dark'] body,
+[data-theme='dark'] .payload__main {
+  background-color: #121212;
+  color: #eaeaea;
+}
+
+/* ---------- Headings ---------- */
+[data-theme='dark'] h1,
+[data-theme='dark'] h2,
+[data-theme='dark'] h3,
+[data-theme='dark'] h4,
+[data-theme='dark'] .doc-controls__title,
+[data-theme='dark'] .collection-list__page-title,
+[data-theme='dark'] .global-default-edit__title {
+  color: #f4f4f4;
+  font-family: 'Playfair Display', Georgia, serif;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Labels ---------- */
+[data-theme='dark'] label,
+[data-theme='dark'] .field-type__label,
+[data-theme='dark'] .collapsible__header-label {
+  color: #cacaca;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+/* ---------- Inputs ---------- */
+[data-theme='dark'] input[type='text'],
+[data-theme='dark'] input[type='email'],
+[data-theme='dark'] input[type='password'],
+[data-theme='dark'] input[type='number'],
+[data-theme='dark'] input[type='url'],
+[data-theme='dark'] input[type='search'],
+[data-theme='dark'] textarea,
+[data-theme='dark'] select,
+[data-theme='dark'] .rs__control {
+  background-color: #1f1f1f !important;
+  border: 1px solid #333333 !important;
+  color: #eaeaea !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+[data-theme='dark'] input::placeholder,
+[data-theme='dark'] textarea::placeholder {
+  color: #6a6a6a !important;
+}
+
+[data-theme='dark'] input:focus,
+[data-theme='dark'] textarea:focus,
+[data-theme='dark'] select:focus,
+[data-theme='dark'] .rs__control--is-focused {
+  border-color: #d4af37 !important;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25) !important;
+  outline: none !important;
+}
+
+/* ---------- Header / Nav ---------- */
+[data-theme='dark'] .app-header,
+[data-theme='dark'] .payload__app-header,
+[data-theme='dark'] header {
+  background-color: #161616;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+[data-theme='dark'] .template-default__nav,
+[data-theme='dark'] .nav,
+[data-theme='dark'] .payload__nav {
+  background-color: #161616;
+  border-right: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+[data-theme='dark'] .nav__link {
+  color: #cacaca;
+  border-left: 2px solid transparent;
+  transition: all 0.15s ease;
+}
+
+[data-theme='dark'] .nav__link:hover {
+  color: #f4f4f4;
+  background-color: rgba(212, 175, 55, 0.06);
+  border-left-color: rgba(212, 175, 55, 0.4);
+}
+
+[data-theme='dark'] .nav__link--active,
+[data-theme='dark'] .nav-group__items .nav__link[aria-current='page'] {
+  color: #d4af37 !important;
+  background-color: rgba(212, 175, 55, 0.1);
+  border-left-color: #d4af37 !important;
+}
+
+[data-theme='dark'] .nav-group__label,
+[data-theme='dark'] .nav-group__title {
+  color: #888 !important;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ======================================================================
+   BUTTONS — override Payload v3 CSS variables
+   ====================================================================== */
+
+/* PRIMARY (Publish changes) */
+[data-theme='dark'] .btn--style-primary {
+  --color: #c9a84c !important;
+  --bg-color: transparent !important;
+  --hover-color: #c9a84c !important;
+  --hover-bg: rgba(201, 168, 76, 0.08) !important;
+  --btn-border: 1px solid rgba(201, 168, 76, 0.5) !important;
+  --hover-btn-border: 1px solid #c9a84c !important;
+  --btn-font-weight: 400 !important;
+  background-color: transparent !important;
+  color: #c9a84c !important;
+  border: 1px solid rgba(201, 168, 76, 0.5) !important;
+  font-weight: 400 !important;
+  font-size: 13px !important;
+  letter-spacing: 0.01em !important;
+  box-shadow: none !important;
+}
+
+[data-theme='dark'] .btn--style-primary:hover,
+[data-theme='dark'] .btn--style-primary:focus {
+  background-color: rgba(201, 168, 76, 0.08) !important;
+  color: #c9a84c !important;
+  border-color: #c9a84c !important;
+  box-shadow: none !important;
+}
+
+[data-theme='dark'] .btn--style-primary.btn--disabled,
+[data-theme='dark'] .btn--style-primary[disabled] {
+  background-color: transparent !important;
+  color: rgba(201, 168, 76, 0.35) !important;
+  border-color: rgba(201, 168, 76, 0.2) !important;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+[data-theme='dark'] .btn--style-primary .btn__content,
+[data-theme='dark'] .btn--style-primary .btn__label,
+[data-theme='dark'] .btn--style-primary .btn__icon,
+[data-theme='dark'] .btn--style-primary span,
+[data-theme='dark'] .btn--style-primary svg {
+  color: #c9a84c !important;
+  fill: none;
+  stroke: currentColor;
+}
+
+/* Direct hit: action buttons by id */
+[data-theme='dark'] #action-save,
+[data-theme='dark'] [id$='action-save'],
+[data-theme='dark'] [id$='action-publish'],
+[data-theme='dark'] [id$='action-saveDraft'] {
+  background-color: transparent !important;
+  color: #c9a84c !important;
+  border: 1px solid rgba(201, 168, 76, 0.5) !important;
+  font-weight: 400 !important;
+  font-size: 13px !important;
+  box-shadow: none !important;
+}
+
+[data-theme='dark'] #action-save *,
+[data-theme='dark'] [id$='action-save'] *,
+[data-theme='dark'] [id$='action-publish'] *,
+[data-theme='dark'] [id$='action-saveDraft'] * {
+  color: #c9a84c !important;
+}
+
+[data-theme='dark'] #action-save:hover,
+[data-theme='dark'] [id$='action-save']:hover,
+[data-theme='dark'] [id$='action-publish']:hover,
+[data-theme='dark'] [id$='action-saveDraft']:hover {
+  background-color: rgba(201, 168, 76, 0.08) !important;
+  color: #c9a84c !important;
+  border-color: #c9a84c !important;
+  box-shadow: none !important;
+}
+
+[data-theme='dark'] #action-save:hover *,
+[data-theme='dark'] [id$='action-save']:hover *,
+[data-theme='dark'] [id$='action-publish']:hover *,
+[data-theme='dark'] [id$='action-saveDraft']:hover * {
+  color: #c9a84c !important;
+}
+
+/* form-submit wrapper */
+[data-theme='dark'] .form-submit .btn--style-primary {
+  background-color: transparent !important;
+  color: #c9a84c !important;
+  border: 1px solid rgba(201, 168, 76, 0.5) !important;
+}
+
+[data-theme='dark'] .form-submit .btn--style-primary * {
+  color: #c9a84c !important;
+}
+
+/* PILL buttons */
+[data-theme='dark'] .btn--style-pill {
+  --color: #c9a84c !important;
+  --bg-color: transparent !important;
+  --hover-color: #c9a84c !important;
+  --hover-bg: rgba(201, 168, 76, 0.08) !important;
+  --btn-border: 1px solid rgba(201, 168, 76, 0.5) !important;
+  --hover-btn-border: 1px solid #c9a84c !important;
+  background-color: transparent !important;
+  color: #c9a84c !important;
+  border: 1px solid rgba(201, 168, 76, 0.5) !important;
+  font-weight: 400 !important;
+  box-shadow: none !important;
+}
+
+[data-theme='dark'] .btn--style-pill:hover {
+  background-color: rgba(201, 168, 76, 0.08) !important;
+  color: #c9a84c !important;
+  border-color: #c9a84c !important;
+  box-shadow: none !important;
+}
+
+[data-theme='dark'] .btn--style-pill .btn__label,
+[data-theme='dark'] .btn--style-pill span,
+[data-theme='dark'] .btn--style-pill svg {
+  color: inherit !important;
+  stroke: currentColor;
+  fill: none;
+}
+
+/* SECONDARY buttons */
+[data-theme='dark'] .btn--style-secondary {
+  --color: #eaeaea !important;
+  --bg-color: transparent !important;
+  --hover-color: #d4af37 !important;
+  --hover-bg: rgba(212, 175, 55, 0.08) !important;
+  --btn-border: 1px solid rgba(212, 175, 55, 0.45) !important;
+  --hover-btn-border: 1px solid #d4af37 !important;
+  background-color: transparent !important;
+  color: #eaeaea !important;
+  border-color: rgba(212, 175, 55, 0.45) !important;
+}
+
+[data-theme='dark'] .btn--style-secondary:hover {
+  background-color: rgba(212, 175, 55, 0.08) !important;
+  color: #d4af37 !important;
+  border-color: #d4af37 !important;
+}
+
+[data-theme='dark'] .btn--style-secondary.btn--disabled {
+  color: #6a6a6a !important;
+  border-color: rgba(212, 175, 55, 0.2) !important;
+  opacity: 0.5;
+}
+
+/* DASHED buttons (Add row, etc.) */
+[data-theme='dark'] .btn--style-dashed {
+  --color: #d4af37 !important;
+  --bg-color: transparent !important;
+  --hover-color: #f4d77a !important;
+  --hover-bg: rgba(212, 175, 55, 0.08) !important;
+  --btn-border: 1px dashed rgba(212, 175, 55, 0.45) !important;
+  --hover-btn-border: 1px dashed #d4af37 !important;
+  color: #d4af37 !important;
+  border: 1px dashed rgba(212, 175, 55, 0.45) !important;
+}
+
+[data-theme='dark'] .btn--style-dashed:hover {
+  color: #f4d77a !important;
+  background-color: rgba(212, 175, 55, 0.08) !important;
+  border-color: #d4af37 !important;
+}
+
+/* GHOST / icon-only buttons */
+[data-theme='dark'] .btn--icon-style-without-border,
+[data-theme='dark'] .btn--style-icon-label,
+[data-theme='dark'] .btn--style-ghost {
+  --color: #d4af37 !important;
+  --bg-color: transparent !important;
+  --hover-color: #f4d77a !important;
+  --hover-bg: rgba(212, 175, 55, 0.12) !important;
+  color: #d4af37 !important;
+  background-color: transparent !important;
+}
+
+[data-theme='dark'] .btn--icon-style-without-border:hover,
+[data-theme='dark'] .btn--style-icon-label:hover,
+[data-theme='dark'] .btn--style-ghost:hover {
+  background-color: rgba(212, 175, 55, 0.12) !important;
+  color: #f4d77a !important;
+}
+
+[data-theme='dark'] .btn--icon-style-without-border svg,
+[data-theme='dark'] .btn--style-icon-label svg,
+[data-theme='dark'] .btn--style-ghost svg {
+  color: currentColor !important;
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
+/* SAFETY NET */
+[data-theme='dark'] button:not(.btn--style-primary):not(.btn--style-pill):not([id$='action-save']):not([id$='action-publish']):not([id$='action-saveDraft']),
+[data-theme='dark'] [role='button']:not(.btn--style-primary):not(.btn--style-pill):not([id$='action-save']):not([id$='action-publish']),
+[data-theme='dark'] .btn:not(.btn--style-primary):not(.btn--style-pill):not([id$='action-save']):not([id$='action-publish']) {
+  color: var(--color, #eaeaea);
+}
+
+[data-theme='dark'] button:disabled,
+[data-theme='dark'] .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- Add row / array actions ---------- */
+[data-theme='dark'] .array-field__add-row,
+[data-theme='dark'] .array-action,
+[data-theme='dark'] .blocks-field__add-row,
+[data-theme='dark'] .array-actions__action {
+  background-color: transparent !important;
+  border: 1px dashed rgba(212, 175, 55, 0.45) !important;
+  color: #d4af37 !important;
+  padding: 8px 14px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 11px;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+}
+
+[data-theme='dark'] .array-field__add-row:hover,
+[data-theme='dark'] .array-action:hover,
+[data-theme='dark'] .blocks-field__add-row:hover,
+[data-theme='dark'] .array-actions__action:hover {
+  background-color: rgba(212, 175, 55, 0.1) !important;
+  border-color: #d4af37 !important;
+  color: #f4d77a !important;
+}
+
+/* ---------- Row controls (icon buttons) ---------- */
+[data-theme='dark'] .array-actions__icon,
+[data-theme='dark'] .array-row__actions button,
+[data-theme='dark'] .row-actions__action,
+[data-theme='dark'] .collapsible__toggle,
+[data-theme='dark'] .field-actions__action,
+[data-theme='dark'] .pill__remove {
+  background-color: transparent !important;
+  border: 1px solid rgba(212, 175, 55, 0.3) !important;
+  color: #d4af37 !important;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+}
+
+[data-theme='dark'] .array-actions__icon:hover,
+[data-theme='dark'] .array-row__actions button:hover,
+[data-theme='dark'] .row-actions__action:hover,
+[data-theme='dark'] .collapsible__toggle:hover,
+[data-theme='dark'] .field-actions__action:hover,
+[data-theme='dark'] .pill__remove:hover {
+  background-color: rgba(212, 175, 55, 0.12) !important;
+  border-color: #d4af37 !important;
+  color: #f4d77a !important;
+}
+
+[data-theme='dark'] .array-actions__icon svg,
+[data-theme='dark'] .array-row__actions button svg,
+[data-theme='dark'] .row-actions__action svg,
+[data-theme='dark'] .collapsible__toggle svg,
+[data-theme='dark'] .field-actions__action svg,
+[data-theme='dark'] .pill__remove svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+}
+
+/* ---------- Array row menu "REMOVE" button (dropdown menu item) ---------- */
+/* This targets the "REMOVE" text button in the array row action dropdown */
+/* Matches the style of "ADD BELOW" and "DUPLICATE" buttons */
+[data-theme='dark'] .array-actions__action--remove,
+[data-theme='dark'] .array-row-menu button[role='menuitem']:has(.array-actions__remove),
+[data-theme='dark'] .array-actions__remove[role='menuitem'],
+[data-theme='dark'] [class*='array-actions'] [class*='remove'][role='menuitem'],
+[data-theme='dark'] .popup__content button[data-action='remove'],
+[data-theme='dark'] .dropdown-menu button[data-action='remove'] {
+  background-color: transparent !important;
+  border: 1px solid rgba(212, 175, 55, 0.45) !important;
+  color: #d4af37 !important;
+  padding: 8px 14px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+  border-radius: 3px !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease !important;
+}
+
+[data-theme='dark'] .array-actions__action--remove:hover,
+[data-theme='dark'] .array-row-menu button[role='menuitem']:has(.array-actions__remove):hover,
+[data-theme='dark'] .array-actions__remove[role='menuitem']:hover,
+[data-theme='dark'] [class*='array-actions'] [class*='remove'][role='menuitem']:hover,
+[data-theme='dark'] .popup__content button[data-action='remove']:hover,
+[data-theme='dark'] .dropdown-menu button[data-action='remove']:hover {
+  background-color: #d4af37 !important;
+  color: #0a0a0a !important;
+  border-color: #d4af37 !important;
+}
+
+[data-theme='dark'] .array-actions__action--remove svg,
+[data-theme='dark'] .array-row-menu button[role='menuitem']:has(.array-actions__remove) svg,
+[data-theme='dark'] .array-actions__remove[role='menuitem'] svg,
+[data-theme='dark'] [class*='array-actions'] [class*='remove'][role='menuitem'] svg,
+[data-theme='dark'] .popup__content button[data-action='remove'] svg,
+[data-theme='dark'] .dropdown-menu button[data-action='remove'] svg {
+  width: 14px !important;
+  height: 14px !important;
+  margin-right: 6px !important;
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
+/* ---------- Collapsible header ---------- */
+[data-theme='dark'] .collapsible__header,
+[data-theme='dark'] .collapsible--style-default > .collapsible__header,
+[data-theme='dark'] .row-collapsible__header {
+  background-color: #1a1a1a !important;
+  border: 1px solid rgba(212, 175, 55, 0.18) !important;
+  color: #eaeaea !important;
+  border-radius: 3px;
+  padding: 10px 14px;
+}
+
+[data-theme='dark'] .collapsible__header:hover {
+  border-color: rgba(212, 175, 55, 0.4) !important;
+}
+
+/* ---------- Doc controls top bar ---------- */
+[data-theme='dark'] .doc-controls {
+  background-color: #161616;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+[data-theme='dark'] .doc-controls__status,
+[data-theme='dark'] .doc-controls__meta,
+[data-theme='dark'] .doc-controls__list-item-label,
+[data-theme='dark'] .doc-controls__list-item-value {
+  color: #cacaca;
+}
+
+[data-theme='dark'] .doc-controls .pill,
+[data-theme='dark'] .doc-controls__status .pill {
+  background-color: rgba(212, 175, 55, 0.15) !important;
+  border-color: rgba(212, 175, 55, 0.4) !important;
+  color: #d4af37 !important;
+}
+
+[data-theme='dark'] .doc-tabs__tab,
+[data-theme='dark'] .doc-tabs__tab a {
+  color: #cacaca;
+  letter-spacing: 0.04em;
+}
+
+[data-theme='dark'] .doc-tabs__tab--active,
+[data-theme='dark'] .doc-tabs__tab--active a {
+  color: #d4af37 !important;
+  border-bottom-color: #d4af37 !important;
+}
+
+[data-theme='dark'] .doc-tabs__tab:hover,
+[data-theme='dark'] .doc-tabs__tab:hover a {
+  color: #f4d77a !important;
+}
+
+[data-theme='dark'] .doc-tabs__count {
+  background-color: rgba(212, 175, 55, 0.15);
+  color: #d4af37;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+/* Locale switcher */
+[data-theme='dark'] .localizer__button,
+[data-theme='dark'] .localizer button {
+  background-color: transparent !important;
+  border: 1px solid rgba(212, 175, 55, 0.3) !important;
+  color: #eaeaea !important;
+  padding: 6px 12px;
+}
+
+[data-theme='dark'] .localizer__button:hover,
+[data-theme='dark'] .localizer button:hover {
+  border-color: #d4af37 !important;
+  color: #d4af37 !important;
+}
+
+/* ---------- Tables / lists ---------- */
+[data-theme='dark'] .collection-list__wrap,
+[data-theme='dark'] .table,
+[data-theme='dark'] table {
+  background-color: #1a1a1a;
+}
+
+[data-theme='dark'] .collection-list__wrap thead,
+[data-theme='dark'] table thead {
+  background-color: #1f1f1f;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+[data-theme='dark'] .collection-list__wrap th,
+[data-theme='dark'] .collection-list__wrap td,
+[data-theme='dark'] table th,
+[data-theme='dark'] table td {
+  color: #eaeaea;
+  border-color: #2a2a2a;
+}
+
+[data-theme='dark'] .collection-list__wrap tr,
+[data-theme='dark'] table tr {
+  border-bottom: 1px solid #2a2a2a;
+  background-color: #1a1a1a;
+  transition: background-color 0.2s ease;
+}
+
+[data-theme='dark'] .collection-list__wrap tr:hover,
+[data-theme='dark'] table tr:hover {
+  background-color: #242424;
+}
+
+[data-theme='dark'] .collection-list__wrap a {
+  color: #eaeaea;
+}
+
+[data-theme='dark'] .collection-list__wrap a:hover {
+  color: #d4af37;
+}
+
+/* ---------- Login ---------- */
+[data-theme='dark'] .login {
+  background: radial-gradient(ellipse at top, #1f1f1f 0%, #121212 70%) !important;
+}
+
+[data-theme='dark'] .login__form-wrap,
+[data-theme='dark'] .login .form {
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  background-color: rgba(26, 26, 26, 0.85);
+  backdrop-filter: blur(8px);
+}
+
+/* ---------- React Select ---------- */
+[data-theme='dark'] .rs__menu,
+[data-theme='dark'] .react-select__menu,
+[data-theme='dark'] .popup__content {
+  background-color: #1f1f1f !important;
+  border: 1px solid #333333 !important;
+  color: #eaeaea !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme='dark'] .rs__option,
+[data-theme='dark'] .react-select__option {
+  color: #eaeaea !important;
+  background-color: transparent !important;
+  padding: 8px 12px;
+}
+
+[data-theme='dark'] .rs__option:hover,
+[data-theme='dark'] .rs__option--is-focused {
+  background-color: rgba(212, 175, 55, 0.12) !important;
+  color: #d4af37 !important;
+}
+
+[data-theme='dark'] .rs__option--is-selected {
+  background-color: rgba(212, 175, 55, 0.2) !important;
+  color: #d4af37 !important;
+}
+
+[data-theme='dark'] .rs__single-value,
+[data-theme='dark'] .react-select__single-value {
+  color: #eaeaea !important;
+}
+
+/* ---------- Popup / dropdown menu ---------- */
+[data-theme='dark'] .popup,
+[data-theme='dark'] .popup__content,
+[data-theme='dark'] .dropdown-menu,
+[data-theme='dark'] .dropdown__menu {
+  background-color: #1f1f1f !important;
+  border: 1px solid rgba(212, 175, 55, 0.2) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme='dark'] .popup__content button,
+[data-theme='dark'] .popup__content a {
+  background-color: transparent !important;
+  color: #eaeaea !important;
+  padding: 8px 14px;
+}
+
+[data-theme='dark'] .popup__content button:hover,
+[data-theme='dark'] .popup__content a:hover {
+  background-color: rgba(212, 175, 55, 0.1) !important;
+  color: #d4af37 !important;
+}
+
+/* ---------- Field meta ---------- */
+[data-theme='dark'] .field-description,
+[data-theme='dark'] .field-type__description,
+[data-theme='dark'] .help-text,
+[data-theme='dark'] small {
+  color: #909090;
+}
+
+[data-theme='dark'] .field-error {
+  color: #ff8a80;
+}
+
+[data-theme='dark'] .required {
+  color: #d4af37;
+}
+
+/* ---------- Upload / dropzone ---------- */
+[data-theme='dark'] .upload,
+[data-theme='dark'] .upload__dropzoneAndUpload,
+[data-theme='dark'] .upload__listUploads {
+  background-color: #1a1a1a;
+  border: 1px dashed #3a3a3a;
+  border-radius: 4px;
+  padding: 16px;
+}
+
+[data-theme='dark'] .upload__dropzoneAndUpload {
+  color: #b0b0b0;
+}
+
+/* ---------- Drawer ---------- */
+[data-theme='dark'] .doc-drawer,
+[data-theme='dark'] .drawer,
+[data-theme='dark'] .doc-drawer__content,
+[data-theme='dark'] .drawer__content {
+  background-color: #1a1a1a;
+  border-left: 1px solid #2a2a2a;
+}
+
+[data-theme='dark'] .doc-drawer__header,
+[data-theme='dark'] .drawer__header {
+  background-color: #1f1f1f;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  color: #eaeaea;
+}
+
+/* ======================================================================
+   LEXICAL RICH TEXT EDITOR — Clean, isolated styling
+   ONE outer wrapper = ONE border. No inner borders, no nested shadows.
+   Matches the "Short bio" field — #141414 background, single #222 border,
+   gold border on :focus-within.
+   ====================================================================== */
+
+/* 1. Начисто сбрасываем все внутренние рамки и тени Payload */
+[data-theme='dark'] .payload__rich-text,
+[data-theme='dark'] .rich-text,
+[data-theme='dark'] .editor-container,
+[data-theme='dark'] .lexical-editor__editor,
+[data-theme='dark'] .rich-text__wrapper {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* 2. Оформляем строго ОДИН внешний контейнер поля */
+[data-theme='dark'] .field-wrapper.rich-text {
+  background-color: #141414 !important; /* Серый фон, как у Short bio */
+  border: 1px solid #222222 !important;  /* Одна аккуратная рамка */
+  border-radius: 4px !important;
+  padding: 1rem !important;               /* Отступы, чтобы текст не лип к краям */
+  transition: border-color 0.2s ease;
+}
+
+/* 3. Подсвечиваем золотом только эту ОДНУ внешнюю рамку при клике */
+[data-theme='dark'] .field-wrapper.rich-text:focus-within {
+  border-color: #D4AF37 !important;
+}
+
+/* ── Inner editor area — transparent, inherits from wrapper ── */
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__editor,
+[data-theme='dark'] .field-wrapper.rich-text .editor-shell,
+[data-theme='dark'] .field-wrapper.rich-text .editor-container,
+[data-theme='dark'] .field-wrapper.rich-text [class*='editor'] {
+  background-color: transparent !important;
+  color: #eaeaea;
+  font-size: 15px;
+  line-height: 1.7;
+  min-height: 120px;
+}
+
+/* ── Toolbar — clean, no double borders ── */
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__toolbar,
+[data-theme='dark'] .field-wrapper.rich-text .lexical-toolbar,
+[data-theme='dark'] .field-wrapper.rich-text .editor-toolbar {
+  background-color: #1a1a1a;
+  border: none;
+  border-bottom: 1px solid #222;
+  border-radius: 4px 4px 0 0;
+  padding: 6px 8px;
+}
+
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__toolbar button,
+[data-theme='dark'] .field-wrapper.rich-text .lexical-toolbar button,
+[data-theme='dark'] .field-wrapper.rich-text .editor-toolbar button {
+  background-color: transparent;
+  color: #cacaca;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 4px 8px;
+  transition: all 0.15s ease;
+}
+
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__toolbar button:hover,
+[data-theme='dark'] .field-wrapper.rich-text .lexical-toolbar button:hover,
+[data-theme='dark'] .field-wrapper.rich-text .editor-toolbar button:hover {
+  background-color: rgba(212, 175, 55, 0.1);
+  color: #d4af37;
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+/* ── Content styling inside editor ── */
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__editor a {
+  color: #d4af37;
+  text-decoration: underline;
+}
+
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__editor h1,
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__editor h2,
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__editor h3 {
+  color: #f4f4f4;
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__editor b,
+[data-theme='dark'] .field-wrapper.rich-text .rich-text__editor strong {
+  color: #d4af37;
+}

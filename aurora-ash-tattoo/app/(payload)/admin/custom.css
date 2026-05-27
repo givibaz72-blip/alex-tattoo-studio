@@ -1,0 +1,40 @@
+/*
+ * Aurora & Ash — Payload Admin custom styles
+ * Makes the richText (Lexical) Full bio field look consistent
+ * with the regular text / textarea fields next to it.
+ */
+
+/* ── Main wrap — add the same border + background as other fields ───────── */
+.rich-text-lexical__wrap {
+  border: 1px solid var(--theme-elevation-150) !important;
+  border-radius: var(--style-radius-m) !important;
+  background-color: var(--theme-input-bg) !important;
+  overflow: hidden;
+}
+
+/* ── Editor container and scroller — match the same background ──────────── */
+.rich-text-lexical__wrap .editor-container,
+.rich-text-lexical__wrap .editor-scroller,
+.rich-text-lexical__wrap .editor {
+  background-color: var(--theme-input-bg) !important;
+}
+
+/* ── ContentEditable root — same background, comfortable padding ─────────── */
+.rich-text-lexical__wrap .ContentEditable__root {
+  background-color: var(--theme-input-bg) !important;
+  min-height: 100px;
+  padding: 8px 12px !important;
+}
+
+/* ── Toolbar — visually separate from the editable area ─────────────────── */
+.rich-text-lexical__wrap .fixed-toolbar {
+  border: none !important;
+  border-bottom: 1px solid var(--theme-elevation-150) !important;
+  border-radius: 0 !important;
+  background-color: var(--theme-elevation-50) !important;
+}
+
+.rich-text-lexical__wrap .fixed-toolbar::before,
+.rich-text-lexical__wrap .fixed-toolbar::after {
+  display: none !important;
+}
