@@ -38,3 +38,8 @@ yarn-error.log*
 
 # Misc
 .swc/
+# Payload media uploads
+public/media/*
+!public/media/aurora_and_ash_logo.svg
+!public/media/logo.svg
+!public/media/logo-1.svg
