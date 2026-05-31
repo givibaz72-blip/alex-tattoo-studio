@@ -77,6 +77,7 @@ export default function InquiryForm({ artists, studioEmail }: InquiryFormProps) 
       artist: '' as unknown as string | number,
       ageConfirmed: false,
       privacyConsent: false,
+      website: undefined,
     },
   })
 
@@ -361,6 +362,20 @@ export default function InquiryForm({ artists, studioEmail }: InquiryFormProps) 
               </ul>
             )}
           </fieldset>
+
+          {/* ── Honeypot ──────────────────────────────────────────────── */}
+          <div style={{ position: 'absolute', left: '-9999px', visibility: 'hidden' }}>
+          <label htmlFor='inquiry-website' style={{ position: 'absolute', left: '-9999px', visibility: 'hidden' }}>
+            Website
+          </label>
+          <input
+            type='text'
+            id='inquiry-website'
+            {...register('website')}
+            aria-hidden='true'
+            tabIndex={-1}
+          />
+          </div>
 
           {/* ── Server error ──────────────────────────────────────── */}
           {submitError && (

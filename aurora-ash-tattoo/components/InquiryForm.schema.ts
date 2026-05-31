@@ -80,6 +80,9 @@ export const inquiryFormSchema = z.object({
   privacyConsent: z
     .boolean({ message: MSG.consent.privacy })
     .refine((v) => v === true, MSG.consent.privacy),
+
+  // Honeypot field: must be empty if present
+  website: z.union([z.literal(""), z.undefined()]),
 })
 
 // --- Inferred Type --------------------------------------------------------
