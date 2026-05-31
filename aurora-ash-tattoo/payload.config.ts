@@ -18,6 +18,14 @@ import {
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+// Validate required environment variables in non‑development environments
+const REQUIRED_VARS = ['PAYLOAD_SECRET', 'DATABASE_URI', 'NEXT_PUBLIC_SITE_URL'];
+for (const v of REQUIRED_VARS) {
+  if (!process.env[v] && process.env.NODE_ENV !== 'development') {
+    throw new Error(`Missing required environment variable: ${v}`);
+  }
+}
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 const MAX_MEDIA_UPLOAD_SIZE_BYTES = 8 * 1024 * 1024
 const MAX_MEDIA_UPLOAD_SIZE_LABEL = '8 MB'
