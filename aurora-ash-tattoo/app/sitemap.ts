@@ -1,24 +1,75 @@
 import type { MetadataRoute } from 'next'
+import { getPayload } from '@/lib/payload'
 
 const baseUrl = 'https://aurora-ash.tattoo' // замени на реальный домен перед деплоем
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // В будущем сюда можно добавить динамический фетч страниц мастеров из Payload CMS:
-  //   const payload = await getPayload()
-  //   const artists = await payload.find({ collection: 'artists', depth: 0 })
-  //   const artistUrls = artists.docs.map((a) => ({
-  //     url: `${baseUrl}/artists/${a.slug}`,
-  //     lastModified: new Date(a.updatedAt),
-  //     changeFrequency: 'monthly' as const,
-  //     priority: 0.7,
-  //   }))
+  try {
+    const payload = await getPayload()
+    // Fetch published pages and artists
+    const [pagesResult, artistsResult] = await Promise.all([
+      payload.find({
+        collection: 'pages',
+        where: {
+          _status: {
+            equals: 'published',
+          },
+        },
+      }),
+      payload.find({
+        collection: 'artists',
+        where: {
+          _status: {
+            equals: 'published',
+          },
+        },
+      }),
+    ])
 
-  return [
-    {
+    const sitemap: MetadataRoute.Sitemap = []
+
+    // Add homepage entry
+    sitemap.push({
       url: baseUrl,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1,
-    },
-  ]
+    })
+
+    // Add other pages (excluding home to avoid duplicate)
+    for (const page of pagesResult.docs) {
+      if (page.slug === 'home') {
+        // Skip homepage as we already added it
+        continue
+      }
+      sitemap.push({
+        url: `${baseUrl}/${page.slug}`,
+        lastModified: new Date(page.updatedAt),
+        changeFrequency: 'weekly',
+        priority: 0.8,
+      })
+    }
+
+    // Add artist pages
+    for (const artist of artistsResult.docs) {
+      sitemap.push({
+        url: `${baseUrl}/portfolio/${artist.slug}`,
+        lastModified: new Date(artist.updatedAt),
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      })
+    }
+
+    return sitemap
+  } catch (error) {
+    // Fallback to static homepage sitemap if Payload query fails
+    return [
+      {
+        url: baseUrl,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 1,
+      },
+    ]
+  }
 }
