@@ -32,8 +32,8 @@ async function findArtist(slug: string, draft: boolean) {
     collection: 'artists',
     where: { slug: { equals: slug } },
     depth: 2,
-    limit: 1,
     draft,
+    limit: 1,
   })
   return res.docs[0] ?? null
 }
@@ -87,6 +87,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
         title,
         description,
         images: imageUrl ? [imageUrl] : [],
+      },
+      alternates: {
+        canonical: `/portfolio/${slug}`,
       },
     }
   } catch {

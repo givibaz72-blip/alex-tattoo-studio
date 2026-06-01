@@ -10,6 +10,9 @@ export const metadata = {
   title: 'Contact — Aurora & Ash',
   description:
     'Contact Aurora & Ash tattoo studio in West Hollywood: appointment inquiries, studio hours, address, and social channels.',
+  alternates: {
+    canonical: '/contact',
+  },
 }
 
 export default async function ContactPage() {
