@@ -435,7 +435,7 @@ export const PAGE_SPECS: PageSpec[] = [
       {
         type: 'imageFeature',
         imageFile: 'feature_room.jpg',
-        caption: 'The studio floor — looking east, main consultation table and reception.',
+        caption: 'Sunlit booths where each design is drawn, refined, and tattooed with deliberate focus.',
         layout: 'full-width',
       },
       {
