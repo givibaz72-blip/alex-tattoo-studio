@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
       openGraph: {
         title: settings?.metaTitle || 'Aurora & Ash Tattoo',
         description: settings?.metaDescription,
-        images: settings?.ogImage?.url ? [{ url: settings.ogImage.url }] : [],
+        images: settings?.ogImage?.url ? [{ url: settings.ogImage.url }] : [{ url: '/seed-images/og_image.png' }],
         type: 'website',
       },
       alternates: {
