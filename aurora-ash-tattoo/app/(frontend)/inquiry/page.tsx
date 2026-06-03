@@ -66,7 +66,10 @@ async function loadInquiryPage(): Promise<{ title: string; subtitle: string }> {
 export const metadata = {
   title: 'Make an appointment — Aurora & Ash',
   description: 'Submit your tattoo inquiry. We answer within 48 hours on weekdays.',
-}
+  alternates: {
+    canonical: '/inquiry',
+  },
+};
 
 export default async function InquiryPage(props: Props) {
   // Next.js 15+: searchParams is a Promise.
