@@ -55,7 +55,10 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return {
       title: doc.seo?.title ?? `${doc.title} - Aurora & Ash`,
       description: doc.seo?.description ?? undefined,
-    }
+      alternates: {
+        canonical: `/${slug}`,
+      },
+    };
   } catch {
     return { title: slug }
   }
