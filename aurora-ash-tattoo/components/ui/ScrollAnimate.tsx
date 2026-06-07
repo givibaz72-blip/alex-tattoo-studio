@@ -28,7 +28,7 @@ interface ScrollAnimateProps {
  * Matches the "premium editorial" feel used throughout the site.
  */
 const EASE: [number, number, number, number] = [0.215, 0.61, 0.355, 1.0]
-const DURATION = 0.7
+const DURATION = 1.0
 
 // ---------------------------------------------------------------------------
 // Component
@@ -65,7 +65,7 @@ export default function ScrollAnimate({
       className={className}
       // Content must be readable even if hydration/IntersectionObserver is
       // delayed or blocked. Do not SSR hidden content with opacity:0.
-      initial={{ opacity: 0, y: 48 }}
+      initial={{ opacity: 0, y: 72 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: DURATION, delay, ease: EASE }}
