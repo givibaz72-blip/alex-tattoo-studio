@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 
 import { DEFAULT_STUDIO_CONTACT } from '../lib/studio-contact-defaults'
+import ScrollAnimate from './ui/ScrollAnimate'
 
 /**
  * LocationSection — editorial map block, "Bang Bang Forever" silhouette
@@ -114,7 +115,8 @@ export default function LocationSection({
       aria-labelledby="location-heading"
       className="relative bg-[#0a0a0a] text-[#D4AF37] min-h-[calc(100vh-5rem)] flex flex-col justify-center py-10 md:py-12 px-6 md:px-10 scroll-mt-20"
     >
-      <div className="max-w-4xl mx-auto text-center relative z-10">
+      <ScrollAnimate>
+        <div className="max-w-4xl mx-auto text-center relative z-10">
         <p className="label-line text-[#D4AF37]/55 mb-6">Visit the studio</p>
 
         <h2
@@ -181,7 +183,8 @@ export default function LocationSection({
             Make an appointment
           </Link>
         </div>
-      </div>
+        </div>
+      </ScrollAnimate>
     </section>
   )
 }
