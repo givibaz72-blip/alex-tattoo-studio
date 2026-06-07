@@ -5,6 +5,7 @@ import AccordionBlock from './blocks/AccordionBlock'
 import ArtistGrid from './blocks/ArtistGrid'
 import ParallaxSection from './blocks/ParallaxSection'
 import ColumnsBlock from './blocks/ColumnsBlock'
+import ScrollAnimate from './ui/ScrollAnimate'
 import type { PageBlock } from './blocks/types'
 
 interface Props {
@@ -40,16 +41,19 @@ export default function BlockRenderer({ blocks }: Props) {
         const node = renderBlock(block, key)
         if (!node) return null
 
+        // Wrap non-parallax blocks with ScrollAnimate for scroll reveal animation
+        const animatedNode = <ScrollAnimate>{node}</ScrollAnimate>
+
         const sectionId = (block as any).sectionId as string | null | undefined
         if (sectionId) {
           return (
             <section key={key} id={sectionId} data-scroll-section className="scroll-mt-[72px]">
-              {node}
+              {animatedNode}
             </section>
           )
         }
 
-        return node
+        return animatedNode
       })}
     </>
   )
